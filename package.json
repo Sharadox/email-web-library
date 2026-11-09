@@ -63,7 +63,7 @@
     "@types/node": "^24.19.2",
     "@types/nodemailer": "^8.0.2",
     "@types/smtp-server": "^3.5.13",
-    "eslint": "9.39.5",
+    "eslint": "10.14.0",
     "eslint-config-prettier": "^10.1.8",
     "husky": "^9.1.7",
     "lint-staged": "^17.6.0",
