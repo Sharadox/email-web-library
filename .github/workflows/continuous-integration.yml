@@ -2,13 +2,13 @@ name: Continuous integration
 on:
   push:
   pull_request:
-    branches: [index, pre-production]
+    branches: [index, preview]
 concurrency: { group: "${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}", cancel-in-progress: true }
 env:
   HUSKY: 0
-  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
-  TURBO_TEAM: sharadox
-  TURBO_REMOTE_CACHE_SIGNATURE_KEY: ${{ secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY }}
+  TURBO_TOKEN: ${{ secrets.TURBOREPO_TOKEN }}
+  TURBO_TEAM: ${{ vars.TURBOREPO_TEAM || 'sharadox' }}
+  TURBO_REMOTE_CACHE_SIGNATURE_KEY: ${{ secrets.TURBOREPO_REMOTE_CACHE_SIGNATURE_KEY }}
 jobs:
   branch-flow:
     name: Branch flow
@@ -20,17 +20,17 @@ jobs:
           BRANCH: ${{ github.head_ref || github.ref_name }}
           TARGET: ${{ github.base_ref }}
         run: |
-          allowed='^(index|pre-production|[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.development|dependabot/.+)$'
+          allowed='^(index|preview|[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.preview|dependabot/.+)$'
           if [[ ! "$BRANCH" =~ $allowed ]]; then
-            echo "::error::Branch \"$BRANCH\" must be index, pre-production or <thing>.development (lowercase letters, digits and hyphens)."
+            echo "::error::Branch \"$BRANCH\" must be index, preview or <feature>.preview (lowercase letters, digits and hyphens)."
             exit 1
           fi
-          if [ "$TARGET" = index ] && [ "$BRANCH" != pre-production ]; then
-            echo "::error::Only pre-production merges into index."
+          if [ "$TARGET" = index ] && [ "$BRANCH" != preview ]; then
+            echo "::error::Only preview merges into index."
             exit 1
           fi
-          if [ "$TARGET" = pre-production ] && [[ ! "$BRANCH" =~ (\.development$|^dependabot/) ]]; then
-            echo "::error::Only <thing>.development branches merge into pre-production."
+          if [ "$TARGET" = preview ] && [[ ! "$BRANCH" =~ (\.preview$|^dependabot/) ]]; then
+            echo "::error::Only <feature>.preview branches merge into preview."
             exit 1
           fi
 

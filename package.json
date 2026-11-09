@@ -2,7 +2,7 @@
   "name": "@sharadox/email-web-library",
   "version": "0.2.0",
   "description": "Send email from web applications through any SMTP server, with message checks and clear errors.",
-  "license": "MIT",
+  "license": "SEE LICENSE IN LICENCA.md",
   "author": "Sharadox <email@sharadox.com>",
   "homepage": "https://github.com/Sharadox/email-web-library#readme",
   "repository": {
@@ -25,7 +25,10 @@
     }
   },
   "files": [
-    "distribution"
+    "distribution",
+    "LICENCA.md",
+    "LICENSE.md",
+    "NOTICE.md"
   ],
   "sideEffects": false,
   "engines": {
