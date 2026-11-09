@@ -1,5 +1,5 @@
-# Releases a `v<version>` tag on index to npm (trusted publishing with provenance, no stored npm token) and
-# attaches the package to a GitHub release.
+# Releases a `v<version>` tag on index to npm with provenance, using the organisation's NPM_TOKEN, and attaches the
+# package to a GitHub release.
 name: Publish
 on:
   push:
@@ -9,9 +9,9 @@ permissions:
   id-token: write
 env:
   HUSKY: 0
-  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
-  TURBO_TEAM: sharadox
-  TURBO_REMOTE_CACHE_SIGNATURE_KEY: ${{ secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY }}
+  TURBO_TOKEN: ${{ secrets.TURBOREPO_TOKEN }}
+  TURBO_TEAM: ${{ vars.TURBOREPO_TEAM || 'sharadox' }}
+  TURBO_REMOTE_CACHE_SIGNATURE_KEY: ${{ secrets.TURBOREPO_REMOTE_CACHE_SIGNATURE_KEY }}
 jobs:
   publish:
     name: Publish
@@ -32,6 +32,7 @@ jobs:
       - run: pnpm exec turbo run format:check lint type-check test:unit build
       - run: pnpm pack
       - run: npm publish ./*.tgz --provenance --access public
+        env: { NODE_AUTH_TOKEN: "${{ secrets.NPM_TOKEN }}" }
       - name: Attach the package to a GitHub release
         env: { GH_TOKEN: "${{ github.token }}" }
         run: gh release create "$GITHUB_REF_NAME" ./*.tgz --title "$GITHUB_REF_NAME" --generate-notes || gh release upload "$GITHUB_REF_NAME" ./*.tgz --clobber
