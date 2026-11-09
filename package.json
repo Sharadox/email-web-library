@@ -1,0 +1,78 @@
+{
+  "name": "@sharadox/email-web-library",
+  "version": "0.1.0",
+  "description": "Send email from web applications through any SMTP server, with message checks and clear errors.",
+  "license": "MIT",
+  "author": "Sharadox <email@sharadox.com>",
+  "homepage": "https://github.com/Sharadox/email-web-library#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Sharadox/email-web-library.git"
+  },
+  "bugs": "https://github.com/Sharadox/email-web-library/issues",
+  "keywords": [
+    "email",
+    "smtp",
+    "nextjs",
+    "server-actions",
+    "contact-form"
+  ],
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./distribution/index.d.ts",
+      "default": "./distribution/index.js"
+    }
+  },
+  "files": [
+    "distribution"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "pnpm@10.34.9",
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "lint": "eslint --max-warnings=0 .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "type-check": "tsc --noEmit",
+    "test:unit": "vitest run",
+    "test:benchmark": "vitest bench --run --passWithNoTests",
+    "documentation": "typedoc",
+    "verify": "turbo run format:check lint type-check test:unit test:benchmark build",
+    "prepare": "husky || true"
+  },
+  "lint-staged": {
+    "*.{ts,js,mjs,cjs}": [
+      "prettier --write",
+      "eslint --fix --max-warnings=0"
+    ],
+    "*.{json,md,yml,yaml}": "prettier --write"
+  },
+  "dependencies": {
+    "nodemailer": "^8.0.11"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "@types/node": "^24.19.2",
+    "@types/nodemailer": "^8.0.2",
+    "@types/smtp-server": "^3.5.13",
+    "eslint": "9.39.5",
+    "eslint-config-prettier": "^10.1.8",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.6.0",
+    "prettier": "^3.9.10",
+    "smtp-server": "^3.21.3",
+    "turbo": "^2.11.10",
+    "typedoc": "^0.28.20",
+    "typescript": "6.0.3",
+    "typescript-eslint": "^8.72.1",
+    "vitest": "^5.1.0"
+  }
+}

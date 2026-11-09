@@ -1,0 +1,37 @@
+# Releases a `v<version>` tag on index to npm (trusted publishing with provenance, no stored npm token) and
+# attaches the package to a GitHub release.
+name: Publish
+on:
+  push:
+    tags: ["v*"]
+permissions:
+  contents: write
+  id-token: write
+env:
+  HUSKY: 0
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_TEAM: sharadox
+  TURBO_REMOTE_CACHE_SIGNATURE_KEY: ${{ secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY }}
+jobs:
+  publish:
+    name: Publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+        with: { fetch-depth: 0 }
+      - name: Check the tag is on index and matches package.json
+        run: |
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/index || { echo "::error::Tags must point at a commit on index."; exit 1; }
+          version="v$(node -p 'require("./package.json").version')"
+          [ "$version" = "$GITHUB_REF_NAME" ] || { echo "::error::Tag $GITHUB_REF_NAME does not match package.json ($version)."; exit 1; }
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with: { node-version-file: .node-version, cache: pnpm, registry-url: "https://registry.npmjs.org" }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec turbo run format:check lint type-check test:unit build
+      - run: pnpm pack
+      - run: npm publish ./*.tgz --provenance --access public
+      - name: Attach the package to a GitHub release
+        env: { GH_TOKEN: "${{ github.token }}" }
+        run: gh release create "$GITHUB_REF_NAME" ./*.tgz --title "$GITHUB_REF_NAME" --generate-notes || gh release upload "$GITHUB_REF_NAME" ./*.tgz --clobber

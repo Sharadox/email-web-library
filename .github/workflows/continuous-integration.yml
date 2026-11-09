@@ -1,0 +1,48 @@
+name: Continuous integration
+on:
+  push:
+  pull_request:
+    branches: [index, pre-production]
+concurrency: { group: "${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}", cancel-in-progress: true }
+env:
+  HUSKY: 0
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_TEAM: sharadox
+  TURBO_REMOTE_CACHE_SIGNATURE_KEY: ${{ secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY }}
+jobs:
+  branch-flow:
+    name: Branch flow
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Check the branch name and where it merges into
+        env:
+          BRANCH: ${{ github.head_ref || github.ref_name }}
+          TARGET: ${{ github.base_ref }}
+        run: |
+          allowed='^(index|pre-production|[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.development|dependabot/.+)$'
+          if [[ ! "$BRANCH" =~ $allowed ]]; then
+            echo "::error::Branch \"$BRANCH\" must be index, pre-production or <thing>.development (lowercase letters, digits and hyphens)."
+            exit 1
+          fi
+          if [ "$TARGET" = index ] && [ "$BRANCH" != pre-production ]; then
+            echo "::error::Only pre-production merges into index."
+            exit 1
+          fi
+          if [ "$TARGET" = pre-production ] && [[ ! "$BRANCH" =~ (\.development$|^dependabot/) ]]; then
+            echo "::error::Only <thing>.development branches merge into pre-production."
+            exit 1
+          fi
+
+  verify:
+    name: Verify
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with: { node-version-file: .node-version, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec turbo run format:check lint type-check test:unit test:benchmark build
