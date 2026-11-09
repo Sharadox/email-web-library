@@ -25,7 +25,7 @@ jobs:
           git merge-base --is-ancestor "$GITHUB_SHA" origin/index || { echo "::error::Tags must point at a commit on index."; exit 1; }
           version="v$(node -p 'require("./package.json").version')"
           [ "$version" = "$GITHUB_REF_NAME" ] || { echo "::error::Tag $GITHUB_REF_NAME does not match package.json ($version)."; exit 1; }
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v5
         with: { node-version-file: .node-version, cache: pnpm, registry-url: "https://registry.npmjs.org" }
       - run: pnpm install --frozen-lockfile
