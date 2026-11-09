@@ -26,7 +26,7 @@ jobs:
           version="v$(node -p 'require("./package.json").version')"
           [ "$version" = "$GITHUB_REF_NAME" ] || { echo "::error::Tag $GITHUB_REF_NAME does not match package.json ($version)."; exit 1; }
       - uses: pnpm/action-setup@v6
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v7
         with: { node-version-file: .node-version, cache: pnpm, registry-url: "https://registry.npmjs.org" }
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec turbo run format:check lint type-check test:unit build
