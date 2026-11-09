@@ -6,6 +6,12 @@ updates:
     schedule: { interval: weekly }
     groups:
       minor-and-patch: { update-types: [minor, patch] }
+    # ESLint stays on 9 in every repository until eslint-config-next and the shared standard move to 10 together.
+    ignore:
+      - dependency-name: eslint
+        update-types: [version-update:semver-major]
+      - dependency-name: "@eslint/js"
+        update-types: [version-update:semver-major]
   - package-ecosystem: github-actions
     directory: /
     target-branch: pre-production
