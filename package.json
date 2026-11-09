@@ -1,6 +1,6 @@
 {
   "name": "@sharadox/email-web-library",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Send email from web applications through any SMTP server, with message checks and clear errors.",
   "license": "MIT",
   "author": "Sharadox <email@sharadox.com>",
