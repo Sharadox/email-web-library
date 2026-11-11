@@ -1,5 +1,4 @@
-# Releases a `v<version>` tag on index to npm with provenance, using the organisation's NPM_TOKEN, and attaches the
-# package to a GitHub release.
+# Publishes a v<version> tag on index to npm (Sharadox/git-hub-action-library/publish).
 name: Publish
 on:
   push:
@@ -7,32 +6,16 @@ on:
 permissions:
   contents: write
   id-token: write
-env:
-  HUSKY: 0
-  TURBO_TOKEN: ${{ secrets.TURBOREPO_TOKEN }}
-  TURBO_TEAM: ${{ vars.TURBOREPO_TEAM || 'sharadox' }}
-  TURBO_REMOTE_CACHE_SIGNATURE_KEY: ${{ secrets.TURBOREPO_REMOTE_CACHE_SIGNATURE_KEY }}
 jobs:
   publish:
     name: Publish
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v7
-        with: { fetch-depth: 0 }
-      - name: Check the tag is on index and matches package.json
-        run: |
-          git merge-base --is-ancestor "$GITHUB_SHA" origin/index || { echo "::error::Tags must point at a commit on index."; exit 1; }
-          version="v$(node -p 'require("./package.json").version')"
-          [ "$version" = "$GITHUB_REF_NAME" ] || { echo "::error::Tag $GITHUB_REF_NAME does not match package.json ($version)."; exit 1; }
-      - uses: pnpm/action-setup@v6
-      - uses: actions/setup-node@v7
-        with: { node-version-file: .node-version, cache: pnpm, registry-url: "https://registry.npmjs.org" }
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm exec turbo run format:check lint type-check test:unit build
-      - run: pnpm pack
-      - run: npm publish ./*.tgz --provenance --access public
-        env: { NODE_AUTH_TOKEN: "${{ secrets.NPM_TOKEN }}" }
-      - name: Attach the package to a GitHub release
-        env: { GH_TOKEN: "${{ github.token }}" }
-        run: gh release create "$GITHUB_REF_NAME" ./*.tgz --title "$GITHUB_REF_NAME" --generate-notes || gh release upload "$GITHUB_REF_NAME" ./*.tgz --clobber
+      - uses: Sharadox/git-hub-action-library/publish@v0.1.0
+        with:
+          tasks: format:check lint type-check test:unit test:benchmark build
+          npm-token: ${{ secrets.NPM_TOKEN }}
+          turborepo-token: ${{ secrets.TURBOREPO_TOKEN }}
+          turborepo-team: ${{ vars.TURBOREPO_TEAM }}
+          turborepo-remote-cache-signature-key: ${{ secrets.TURBOREPO_REMOTE_CACHE_SIGNATURE_KEY }}
