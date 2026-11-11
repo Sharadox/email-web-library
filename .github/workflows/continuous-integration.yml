@@ -1,48 +1,26 @@
+# Branch flow and checks come from Sharadox/git-hub-action-library (see its README).
 name: Continuous integration
 on:
   push:
   pull_request:
-    branches: [index, preview]
+    branches: [index, development]
 concurrency: { group: "${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}", cancel-in-progress: true }
-env:
-  HUSKY: 0
-  TURBO_TOKEN: ${{ secrets.TURBOREPO_TOKEN }}
-  TURBO_TEAM: ${{ vars.TURBOREPO_TEAM || 'sharadox' }}
-  TURBO_REMOTE_CACHE_SIGNATURE_KEY: ${{ secrets.TURBOREPO_REMOTE_CACHE_SIGNATURE_KEY }}
 jobs:
   branch-flow:
     name: Branch flow
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
-      - name: Check the branch name and where it merges into
-        env:
-          BRANCH: ${{ github.head_ref || github.ref_name }}
-          TARGET: ${{ github.base_ref }}
-        run: |
-          allowed='^(index|preview|[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.preview|dependabot/.+)$'
-          if [[ ! "$BRANCH" =~ $allowed ]]; then
-            echo "::error::Branch \"$BRANCH\" must be index, preview or <feature>.preview (lowercase letters, digits and hyphens)."
-            exit 1
-          fi
-          if [ "$TARGET" = index ] && [ "$BRANCH" != preview ]; then
-            echo "::error::Only preview merges into index."
-            exit 1
-          fi
-          if [ "$TARGET" = preview ] && [[ ! "$BRANCH" =~ (\.preview$|^dependabot/) ]]; then
-            echo "::error::Only <feature>.preview branches merge into preview."
-            exit 1
-          fi
-
+      - uses: Sharadox/git-hub-action-library/branch-flow@v0.1.0
   verify:
     name: Verify
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v6
-      - uses: actions/setup-node@v7
-        with: { node-version-file: .node-version, cache: pnpm }
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm exec turbo run format:check lint type-check test:unit test:benchmark build
+      - uses: Sharadox/git-hub-action-library/verify@v0.1.0
+        with:
+          tasks: format:check lint type-check test:unit test:benchmark build
+          turborepo-token: ${{ secrets.TURBOREPO_TOKEN }}
+          turborepo-team: ${{ vars.TURBOREPO_TEAM }}
+          turborepo-remote-cache-signature-key: ${{ secrets.TURBOREPO_REMOTE_CACHE_SIGNATURE_KEY }}
