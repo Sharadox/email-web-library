@@ -61,8 +61,8 @@ pnpm verify          # format, lint, types, unit and benchmark tests, build
 pnpm documentation   # API reference in documentation/
 ```
 
-Branches: `index` is released, `development` gathers finished work, and each change lives on `<feature>.development`. Releases are a `v<version>` tag on `index`; the publish workflow releases to npm with provenance, using the organisation's `NPM_TOKEN`.
+Branches: `index` is released, `development` gathers finished work, and each change lives on `<feature>.development`. Releases are a `v<version>` tag on `index`; the publish workflow releases to npm with provenance, using the organization's `NPM_TOKEN`.
 
 ## License
 
-Licença Sharadox de Código Aberto, versão 0.1.0 ([português](LICENCA.md), the binding text · [English translation](LICENSE.md)). Versions up to 0.1.0 were published under the MIT licence.
+Licença Sharadox de Código Aberto, versão 0.1.0 ([português](LICENCA.md), the binding text · [English translation](LICENSE.md)). Versions up to 0.1.0 were published under the MIT license.
