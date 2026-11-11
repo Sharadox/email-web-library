@@ -1,6 +1,6 @@
 {
   "name": "@sharadox/email-web-library",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Send email from web applications through any SMTP server, with message checks and clear errors.",
   "license": "SEE LICENSE IN LICENCA.md",
   "author": "Sharadox <contact@sharadox.com>",
@@ -32,7 +32,7 @@
   ],
   "sideEffects": false,
   "engines": {
-    "node": ">=20"
+    "node": ">=26"
   },
   "packageManager": "pnpm@10.34.9",
   "publishConfig": {
