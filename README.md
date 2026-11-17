@@ -49,6 +49,16 @@ export async function sendContact(name: string, email: string, text: string) {
 }
 ```
 
+Images inside the html (a logo at the top, say) go in `inlineImages`, each referred to as `cid:<id>`, so they show without loading anything from the internet:
+
+```ts
+await sender.send({
+  ...message,
+  html: '<img src="cid:logo" alt="Sharadox">',
+  inlineImages: [{ id: "logo", filename: "logo.png", contentType: "image/png", content: png }],
+});
+```
+
 `sender.verify()` logs in without sending, handy for a health check. `checkEmailMessage` and `checkEmailAddress` are exported for validating input before you get as far as sending.
 
 ## Development
