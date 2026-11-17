@@ -39,6 +39,13 @@ export function createEmailSender(configuration: EmailServerConfiguration): Emai
           subject: message.subject,
           text: message.text,
           html: message.html,
+          attachments: message.inlineImages?.map((image) => ({
+            cid: image.id,
+            filename: image.filename,
+            contentType: image.contentType,
+            content: Buffer.from(image.content),
+            contentDisposition: "inline" as const,
+          })),
           disableFileAccess: true,
           disableUrlAccess: true,
         });

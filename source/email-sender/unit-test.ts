@@ -68,6 +68,20 @@ describe("createEmailSender", () => {
     expect(last.data).toContain("A line with only a dot must survive.");
   });
 
+  it("sends inline images with the html, referred to by their id", async () => {
+    const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47]);
+    await sender().send({
+      ...message,
+      html: '<img src="cid:logo" alt="Sharadox">',
+      inlineImages: [{ id: "logo", filename: "logo.png", contentType: "image/png", content: png }],
+    });
+    const data = received.at(-1)!.data;
+    expect(data).toMatch(/^Content-Type: multipart\/related/m);
+    expect(data).toMatch(/^Content-ID: <logo>$/m);
+    expect(data).toMatch(/^Content-Disposition: inline; filename=logo\.png$/m);
+    expect(data).toContain(Buffer.from(png).toString("base64"));
+  });
+
   it("verifies the login without sending", async () => {
     const before = received.length;
     await expect(sender().verify()).resolves.toBeUndefined();
