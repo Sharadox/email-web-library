@@ -20,3 +20,5 @@ export { createEmailSender } from "./email-sender/index.ts";
 export type { EmailReceipt, EmailSender } from "./email-sender/type.ts";
 export { readEmailServerConfiguration } from "./email-server-configuration/index.ts";
 export type { EmailServerConfiguration, EmailServerSecurity } from "./email-server-configuration/type.ts";
+export { emailLayout } from "./email-layout/index.ts";
+export type { EmailContent, EmailDesign, EmailRow } from "./email-layout/type.ts";
