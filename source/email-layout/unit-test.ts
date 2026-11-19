@@ -1,0 +1,107 @@
+import { expect, test } from "vitest";
+import { emailLayout } from "./index.ts";
+import type { EmailContent, EmailDesign } from "./type.ts";
+
+const design: EmailDesign = {
+  name: "Acme & Co",
+  logo: { width: 30, height: 30 },
+  wordmark: true,
+  align: "left",
+  colors: {
+    page: "#000000",
+    card: "#000000",
+    edge: "#262626",
+    text: "#ffffff",
+    muted: "#a3a3a3",
+    quiet: "#737373",
+    rule: "#2e2e2e",
+    accent: "#ffffff",
+    box: "#0a0a0a",
+    onAccent: "#000000",
+  },
+  fonts: { heading: "Geist, sans-serif", body: "Geist, sans-serif", label: "monospace" },
+  heading: { size: 34, weight: 600, letterSpacing: "-0.04em", lineHeight: 1.1 },
+  label: { size: 11, letterSpacing: "0.06em" },
+  rule: "dashed",
+  radius: 0,
+  button: { radius: 999, uppercase: false, letterSpacing: "0" },
+};
+
+const content: EmailContent = {
+  language: "en",
+  preview: "Ana sent a message",
+  eyebrow: "Contact",
+  heading: "Ana <Villa Mar>",
+  paragraphs: ["Thanks for writing."],
+  rows: [
+    { label: "Name", value: "Ana" },
+    { label: "Email", value: "ana@example.com", href: "mailto:ana@example.com" },
+  ],
+  quote: { label: "Message", text: "Hello\nthere" },
+  button: { label: "Reply to Ana", href: "mailto:ana@example.com" },
+  footer: [{ label: "Page", value: "https://example.com/en", href: "https://example.com/en" }],
+};
+
+test("lays out everything given in the design, escaped, with the logo and the name beside it", () => {
+  const html = emailLayout(content, design, true);
+  expect(html).toContain('<html lang="en">');
+  expect(html).toContain('<img src="cid:logo" width="30" height="30" alt="Acme &amp; Co"');
+  expect(html).toContain(">Acme &amp; Co</td>");
+  expect(html).toContain("Ana &lt;Villa Mar&gt;");
+  expect(html).not.toContain("<Villa Mar>");
+  expect(html).toContain("Thanks for writing.");
+  expect(html).toContain('href="mailto:ana@example.com"');
+  expect(html).toContain("border-top:1px dashed #2e2e2e");
+  expect(html).toContain("Hello\nthere");
+  expect(html).toContain(">Reply to Ana</a>");
+  expect(html).toContain('Page: <a href="https://example.com/en"');
+  // A plain card: no frame lines, no marks, no gradient, no signature.
+  expect(html).toContain("border:1px solid #262626;border-radius:0px");
+  expect(html).not.toContain(">+</td>");
+  expect(html).not.toContain("background-image");
+  expect(html).not.toContain("white-space:nowrap");
+  // Phones get the narrower layout.
+  expect(html).toContain("@media (max-width:520px)");
+});
+
+test("draws a grid's frame with marks, a gold gradient, a centered mark alone, and the company's signature", () => {
+  const html = emailLayout(
+    { language: "pt", preview: "Uma mensagem", eyebrow: "Marcação", heading: "Ana" },
+    {
+      ...design,
+      wordmark: false,
+      align: "center",
+      crosses: true,
+      eyebrowLine: true,
+      quoteBar: true,
+      rule: "solid",
+      colors: {
+        ...design.colors,
+        accentGradient: "linear-gradient(115deg, #7a5a22, #f6e3a8)",
+        headerRule: "linear-gradient(90deg, #000, #c9a24e, #000)",
+      },
+      signature: [{ text: "Upholstery & interiors" }, { text: "example.com", href: "https://example.com" }],
+    },
+    true,
+  );
+  expect(html.match(/>\+<\/td>/g)).toHaveLength(4);
+  expect(html).toContain("border-right:1px solid #262626");
+  expect(html).not.toContain(">Acme &amp; Co</td>");
+  expect(html).toContain("margin:0 auto");
+  expect(html).toContain("background:linear-gradient(90deg, #000, #c9a24e, #000)");
+  expect(html).toContain("background-image:linear-gradient(115deg, #7a5a22, #f6e3a8)");
+  expect(html).toContain("Upholstery &amp; interiors");
+  expect(html).toContain('<a href="https://example.com"');
+  expect(html).not.toContain(
+    '<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:separate;width:100%;margin:28px 0 0"',
+  );
+});
+
+test("without a logo, or a design with no logo size, it writes the company's name instead", () => {
+  const unsized: EmailDesign = { ...design, logo: undefined };
+  for (const html of [emailLayout(content, design, false), emailLayout(content, unsized, true)]) {
+    expect(html).not.toContain("cid:logo");
+    expect(html).toContain(">Acme &amp; Co</td>");
+  }
+  expect(emailLayout(content, { ...design, quoteBar: true }, false)).toContain("border-left:2px solid #ffffff");
+});
