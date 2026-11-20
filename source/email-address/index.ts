@@ -1,5 +1,5 @@
-import { EmailError } from "../email-error/index.ts";
-import type { EmailAddress } from "./type.ts";
+import { EmailError } from "@sharadox/email-web-library/email-error";
+import type { EmailAddress } from "@sharadox/email-web-library/email-address/type";
 
 /** One address: a local part, an @, and a domain with at least one dot; no spaces, angle brackets or line breaks. */
 const ADDRESS = /^[^\s@<>()[\]\\,;:"]+@[^\s@<>()[\]\\,;:"]+\.[^\s@<>()[\]\\,;:"]+$/;

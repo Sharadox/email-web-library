@@ -1,6 +1,6 @@
 import { SMTPServer } from "smtp-server";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { createEmailSender } from "./index.ts";
+import { createEmailSender } from "@sharadox/email-web-library/email-sender";
 
 interface Received {
   from: string;

@@ -15,6 +15,10 @@ pnpm add @sharadox/email-web-library
 
 ## Use
 
+Import each part from its own path, like every Sharadox library (`@sharadox/email-web-library/email-sender`,
+`…/email-layout`, `…/email-server-configuration`, `…/email-message`, `…/email-address`, `…/email-error`, `…/inline-image`, which turns a base64 image such as a logo into one to send). The root
+import (`@sharadox/email-web-library`) still works in 0.5 and goes away in 0.6.
+
 Set the server in the environment:
 
 | Variable                | Example                   | Notes                                                                                           |

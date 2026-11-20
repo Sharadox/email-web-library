@@ -1,9 +1,3 @@
-import { defineConfig } from "vitest/config";
+import { defineLibraryTest } from "@sharadox/vitest-configuration-web-library/library-test";
 
-export default defineConfig({
-  test: {
-    environment: "node",
-    include: ["source/**/?(*-)unit-test.ts"],
-    benchmark: { include: ["source/**/?(*-)benchmark-test.ts"] },
-  },
-});
+export default defineLibraryTest({ root: new URL("./", import.meta.url) });

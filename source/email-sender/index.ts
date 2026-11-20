@@ -1,8 +1,8 @@
 import { createTransport } from "nodemailer";
-import { EmailError } from "../email-error/index.ts";
-import { checkEmailMessage } from "../email-message/index.ts";
-import type { EmailServerConfiguration } from "../email-server-configuration/type.ts";
-import type { EmailReceipt, EmailSender } from "./type.ts";
+import { EmailError } from "@sharadox/email-web-library/email-error";
+import { checkEmailMessage } from "@sharadox/email-web-library/email-message";
+import type { EmailServerConfiguration } from "@sharadox/email-web-library/email-server-configuration/type";
+import type { EmailReceipt, EmailSender } from "@sharadox/email-web-library/email-sender/type";
 
 const addressText = (entry: string | { address: string }) => (typeof entry === "string" ? entry : entry.address);
 

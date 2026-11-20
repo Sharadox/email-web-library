@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { checkEmailMessage } from "./index.ts";
-import type { EmailMessage } from "./type.ts";
+import { checkEmailMessage } from "@sharadox/email-web-library/email-message";
+import type { EmailMessage } from "@sharadox/email-web-library/email-message/type";
 
 const message: EmailMessage = {
   from: { name: "Website", address: "website@example.com" },

@@ -1,4 +1,4 @@
-import type { EmailErrorCode } from "./type.ts";
+import type { EmailErrorCode } from "@sharadox/email-web-library/email-error/type";
 
 /** The only error this library throws; `code` says whose problem it is. */
 export class EmailError extends Error {
