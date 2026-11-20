@@ -1,6 +1,6 @@
 {
   "name": "@sharadox/email-web-library",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Send email from web applications through any SMTP server, with message checks and clear errors.",
   "license": "SEE LICENSE IN LICENCA.md",
   "author": "Sharadox <contact@sharadox.com>",
@@ -59,7 +59,7 @@
     "*.{json,md,yml,yaml}": "prettier --write"
   },
   "dependencies": {
-    "@sharadox/web-library": "^0.7.0",
+    "@sharadox/web-library": "^0.8.0",
     "nodemailer": "^10.1.4"
   },
   "devDependencies": {
