@@ -1,0 +1,12 @@
+# @sharadox/email-web-library
+
+> Send email from web applications through any SMTP server (Nodemailer underneath): configuration from the environment, checked messages, one error type, and an email layout in a brand's design.
+
+- /email-server-configuration: readEmailServerConfiguration(environment = process.env) → { host, port (587), username, password, security ("starttls" | "tls" on 465 | "none"), timeout? } from EMAIL_SERVER_HOST, _PORT, _USERNAME, _PASSWORD, _SECURITY; throws EmailError("configuration") naming what's missing
+- /email-sender: createEmailSender(configuration) → { send(message) → { messageId, accepted, rejected }, verify() }; one short connection per send (serverless); refused recipients reported, all refused or any server failure → EmailError("delivery") without the password or message content
+- /email-message: checkEmailMessage(message) (valid addresses, one-line subject, at most RECIPIENT_LIMIT recipients, SUBJECT_LIMIT characters); EmailMessage { from, to, cc?, bcc?, replyTo?, subject, text, html?, inlineImages? [{ id, filename, contentType, content }] }
+- /email-address: checkEmailAddress(value, field) → the address, or EmailError("invalid-message"); EmailAddress = string | { name, address }
+- /email-error: EmailError(code: "configuration" | "invalid-message" | "delivery", message, options?)
+- /email-layout: emailLayout(content, design, logo) → HTML that works in email clients, light and dark; EmailDesign (name, logo?, wordmark, align, colors, fonts, heading, label, rule, radius, button, signature…), EmailContent (language, preview, eyebrow, heading, paragraphs, rows, quote, button, footer)
+- Root import (all of the above) kept in 0.5 for compatibility, removed in 0.6.
+- License: Sharadox Open Source License 0.1.0

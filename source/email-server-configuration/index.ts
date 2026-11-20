@@ -1,5 +1,8 @@
-import { EmailError } from "../email-error/index.ts";
-import type { EmailServerConfiguration, EmailServerSecurity } from "./type.ts";
+import { EmailError } from "@sharadox/email-web-library/email-error";
+import type {
+  EmailServerConfiguration,
+  EmailServerSecurity,
+} from "@sharadox/email-web-library/email-server-configuration/type";
 
 const SECURITIES: readonly EmailServerSecurity[] = ["starttls", "tls", "none"];
 

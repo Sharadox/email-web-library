@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { checkEmailAddress } from "./index.ts";
+import { checkEmailAddress } from "@sharadox/email-web-library/email-address";
 
 describe("checkEmailAddress", () => {
   it("accepts plain and named addresses", () => {

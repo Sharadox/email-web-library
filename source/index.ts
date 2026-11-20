@@ -10,15 +10,18 @@
  *
  * @packageDocumentation
  */
-export { checkEmailAddress } from "./email-address/index.ts";
-export type { EmailAddress } from "./email-address/type.ts";
-export { EmailError } from "./email-error/index.ts";
-export type { EmailErrorCode } from "./email-error/type.ts";
-export { checkEmailMessage, RECIPIENT_LIMIT, SUBJECT_LIMIT } from "./email-message/index.ts";
-export type { EmailMessage, InlineImage } from "./email-message/type.ts";
-export { createEmailSender } from "./email-sender/index.ts";
-export type { EmailReceipt, EmailSender } from "./email-sender/type.ts";
-export { readEmailServerConfiguration } from "./email-server-configuration/index.ts";
-export type { EmailServerConfiguration, EmailServerSecurity } from "./email-server-configuration/type.ts";
-export { emailLayout } from "./email-layout/index.ts";
-export type { EmailContent, EmailDesign, EmailRow } from "./email-layout/type.ts";
+export { checkEmailAddress } from "@sharadox/email-web-library/email-address";
+export type { EmailAddress } from "@sharadox/email-web-library/email-address/type";
+export { EmailError } from "@sharadox/email-web-library/email-error";
+export type { EmailErrorCode } from "@sharadox/email-web-library/email-error/type";
+export { checkEmailMessage, RECIPIENT_LIMIT, SUBJECT_LIMIT } from "@sharadox/email-web-library/email-message";
+export type { EmailMessage, InlineImage } from "@sharadox/email-web-library/email-message/type";
+export { createEmailSender } from "@sharadox/email-web-library/email-sender";
+export type { EmailReceipt, EmailSender } from "@sharadox/email-web-library/email-sender/type";
+export { readEmailServerConfiguration } from "@sharadox/email-web-library/email-server-configuration";
+export type {
+  EmailServerConfiguration,
+  EmailServerSecurity,
+} from "@sharadox/email-web-library/email-server-configuration/type";
+export { emailLayout } from "@sharadox/email-web-library/email-layout";
+export type { EmailContent, EmailDesign, EmailRow } from "@sharadox/email-web-library/email-layout/type";

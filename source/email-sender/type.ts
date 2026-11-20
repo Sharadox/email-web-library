@@ -1,4 +1,4 @@
-import type { EmailMessage } from "../email-message/type.ts";
+import type { EmailMessage } from "@sharadox/email-web-library/email-message/type";
 
 /** What the server said when it took the message. */
 export interface EmailReceipt {
