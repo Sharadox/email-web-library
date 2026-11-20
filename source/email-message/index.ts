@@ -1,6 +1,6 @@
-import { checkEmailAddress } from "../email-address/index.ts";
-import { EmailError } from "../email-error/index.ts";
-import type { EmailMessage } from "./type.ts";
+import { checkEmailAddress } from "@sharadox/email-web-library/email-address";
+import { EmailError } from "@sharadox/email-web-library/email-error";
+import type { EmailMessage } from "@sharadox/email-web-library/email-message/type";
 
 /** Longest subject accepted, in characters. */
 export const SUBJECT_LIMIT = 300;

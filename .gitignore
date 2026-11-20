@@ -2,7 +2,9 @@ node_modules/
 .turbo/
 distribution/
 documentation/
+/coverage/
 *.tsbuildinfo
 *.tgz
 .env*
-!.env.example
+turbo.json
+/coverage/

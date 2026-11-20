@@ -1,11 +1,3 @@
-import javaScript from "@eslint/js";
-import prettier from "eslint-config-prettier/flat";
-import { defineConfig, globalIgnores } from "eslint/config";
-import typeScriptEslint from "typescript-eslint";
+import { nodeConfiguration } from "@sharadox/es-lint-configuration-web-library/node";
 
-export default defineConfig([
-  javaScript.configs.recommended,
-  ...typeScriptEslint.configs.recommended,
-  prettier,
-  globalIgnores(["documentation/**", "distribution/**"]),
-]);
+export default nodeConfiguration();

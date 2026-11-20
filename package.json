@@ -1,6 +1,6 @@
 {
   "name": "@sharadox/email-web-library",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "description": "Send email from web applications through any SMTP server, with message checks and clear errors.",
   "license": "SEE LICENSE IN LICENCA.md",
   "author": "Sharadox <contact@sharadox.com>",
@@ -20,15 +20,28 @@
   "type": "module",
   "exports": {
     ".": {
+      "sharadox-source": "./source/index.ts",
       "types": "./distribution/index.d.ts",
       "default": "./distribution/index.js"
+    },
+    "./*/type": {
+      "sharadox-source": "./source/*/type.ts",
+      "types": "./distribution/*/type.d.ts"
+    },
+    "./*": {
+      "sharadox-source": [
+        "./source/*/index.ts"
+      ],
+      "types": "./distribution/*/index.d.ts",
+      "default": "./distribution/*/index.js"
     }
   },
   "files": [
     "distribution",
     "LICENCA.md",
     "LICENSE.md",
-    "NOTICE.md"
+    "NOTICE.md",
+    "llms.txt"
   ],
   "sideEffects": false,
   "engines": {
@@ -40,16 +53,16 @@
     "provenance": true
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "library-build",
     "lint": "eslint --max-warnings=0 .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "type-check": "tsc --noEmit",
-    "test:unit": "vitest run",
+    "test:unit": "vitest run --coverage",
     "test:benchmark": "vitest bench --run --passWithNoTests",
     "documentation": "typedoc",
     "verify": "turbo run format:check lint type-check test:unit test:benchmark build",
-    "prepare": "husky || true"
+    "prepare": "turborepo-configuration library && (husky || true)"
   },
   "lint-staged": {
     "*.{ts,js,mjs,cjs}": [
@@ -63,20 +76,24 @@
     "nodemailer": "^10.1.4"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.5",
+    "@sharadox/es-lint-configuration-web-library": "^0.1.2",
+    "@sharadox/library-build-web-library": "^0.1.2",
+    "@sharadox/prettier-configuration-web-library": "^0.1.1",
+    "@sharadox/turborepo-configuration-web-library": "^0.1.1",
+    "@sharadox/type-script-configuration-web-library": "^0.2.1",
+    "@sharadox/vitest-configuration-web-library": "^0.1.4",
     "@types/node": "^24.19.2",
     "@types/nodemailer": "^8.0.2",
     "@types/smtp-server": "^3.5.13",
+    "@vitest/coverage-v8": "^5.1.1",
     "eslint": "9.39.5",
-    "eslint-config-prettier": "^10.1.8",
     "husky": "^9.1.7",
     "lint-staged": "^17.6.0",
-    "prettier": "^3.9.10",
+    "prettier": "^3.10.1",
     "smtp-server": "^3.21.3",
     "turbo": "^2.11.10",
     "typedoc": "^0.28.20",
     "typescript": "6.0.3",
-    "typescript-eslint": "^8.72.1",
     "vitest": "^5.1.0"
   }
 }

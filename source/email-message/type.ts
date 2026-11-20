@@ -1,4 +1,4 @@
-import type { EmailAddress } from "../email-address/type.ts";
+import type { EmailAddress } from "@sharadox/email-web-library/email-address/type";
 
 /** An email to send. Give `text`, `html` or both (text is the fallback for clients that don't show html). */
 export interface EmailMessage {

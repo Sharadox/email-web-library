@@ -1,14 +1,3 @@
 {
-  "extends": "./tsconfig.json",
-  "compilerOptions": {
-    "noEmit": false,
-    "allowImportingTsExtensions": false,
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
-    "rootDir": "source",
-    "outDir": "distribution"
-  },
-  "include": ["source/**/*.ts"],
-  "exclude": ["source/**/*unit-test.ts", "source/**/*benchmark-test.ts"]
+  "extends": ["./tsconfig.json", "@sharadox/type-script-configuration-web-library/library-build.json"]
 }

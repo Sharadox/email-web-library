@@ -1,4 +1,1 @@
-/** @type {import("prettier").Config} */
-const config = { printWidth: 120 };
-
-export default config;
+export { configuration as default } from "@sharadox/prettier-configuration-web-library/configuration";

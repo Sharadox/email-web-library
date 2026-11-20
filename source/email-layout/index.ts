@@ -1,5 +1,5 @@
 import { escapeHtml } from "@sharadox/web-library/html/escape";
-import type { EmailContent, EmailDesign, EmailRow } from "./type.ts";
+import type { EmailContent, EmailDesign, EmailRow } from "@sharadox/email-web-library/email-layout/type";
 
 /**
  * On phones, where the email app reads it (Apple Mail, the Gmail apps): narrower sides, and each detail's label over

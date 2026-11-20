@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
-import { emailLayout } from "./index.ts";
-import type { EmailContent, EmailDesign } from "./type.ts";
+import { emailLayout } from "@sharadox/email-web-library/email-layout";
+import type { EmailContent, EmailDesign } from "@sharadox/email-web-library/email-layout/type";
 
 const design: EmailDesign = {
   name: "Acme & Co",
@@ -104,4 +104,20 @@ test("without a logo, or a design with no logo size, it writes the company's nam
     expect(html).toContain(">Acme &amp; Co</td>");
   }
   expect(emailLayout(content, { ...design, quoteBar: true }, false)).toContain("border-left:2px solid #ffffff");
+});
+
+test("centers a centered design's button, writes it in capitals, and draws its own header rule", () => {
+  const html = emailLayout(
+    { ...content, button: { label: "Reply", href: "mailto:ana@example.com" } },
+    {
+      ...design,
+      align: "center",
+      button: { radius: 4, uppercase: true, letterSpacing: "0.18em" },
+      colors: { ...design.colors, headerRule: "#c9a24e" },
+    },
+    true,
+  );
+  expect(html).toContain("margin:32px auto 0");
+  expect(html).toContain("text-transform:uppercase;");
+  expect(html).toContain("background:#c9a24e;");
 });

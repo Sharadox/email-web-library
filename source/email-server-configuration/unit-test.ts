@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { readEmailServerConfiguration } from "./index.ts";
+import { readEmailServerConfiguration } from "@sharadox/email-web-library/email-server-configuration";
 
 const environment = {
   EMAIL_SERVER_HOST: "smtp.example.com",
