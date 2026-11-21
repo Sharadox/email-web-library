@@ -16,6 +16,38 @@ const PHONE =
 const OWN_COLORS = (page: string) =>
   `:root{color-scheme:light dark;supported-color-schemes:light dark}@media (prefers-color-scheme:dark){body,.page{background-color:${page}!important}}`;
 
+/**
+ * A pure neutral color (red, green and blue equal: black, white, greys) nudged by 2/255 in blue, which no eye can
+ * tell apart. Some mail apps in dark mode (Proton Mail on Android) take pure neutral colors for the email's default
+ * styling and swap them for their own theme's, so a black design lost its backgrounds, its grey lines and its white
+ * button; colors with any tint are kept as they are.
+ */
+export function ownColor(hex: string): string {
+  const match = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(hex);
+  if (
+    !match ||
+    match[1]!.toLowerCase() !== match[2]!.toLowerCase() ||
+    match[2]!.toLowerCase() !== match[3]!.toLowerCase()
+  )
+    return hex;
+  const level = Number.parseInt(match[1]!, 16);
+  const blue = level > 253 ? level - 2 : level + 2;
+  return `#${match[1]}${match[2]}${blue.toString(16).padStart(2, "0")}`.toLowerCase();
+}
+
+/** Every pure neutral color in a CSS value (a color or a gradient), made the email's own (`ownColor`). */
+const ownColors = (value: string) => value.replace(/#[0-9a-f]{6}\b/gi, ownColor);
+
+/** A design whose every color is its own: what the reader sees is the same, what mail apps recolor isn't. */
+const owned = (design: EmailDesign): EmailDesign => ({
+  ...design,
+  colors: Object.fromEntries(
+    Object.entries(design.colors)
+      .filter((entry): entry is [string, string] => entry[1] !== undefined)
+      .map(([name, value]) => [name, ownColors(value)]),
+  ) as EmailDesign["colors"],
+});
+
 /** A table that's only there for layout, as email clients need. */
 const table = (style: string, rows: string, width?: number) =>
   `<table role="presentation" cellpadding="0" cellspacing="0" border="0"${width ? ` width="${width}"` : ""} style="border-collapse:separate;${style}">${rows}</table>`;
@@ -126,7 +158,8 @@ function framed(design: EmailDesign, card: string) {
  * emailLayout({ language: "en", preview: "Ana sent a message", eyebrow: "Contact", heading: "Ana",
  *   rows: [{ label: "Email", value: "ana@example.com" }] }, SHARADOX_EMAIL, true);
  */
-export function emailLayout(content: EmailContent, design: EmailDesign, logo: boolean): string {
+export function emailLayout(content: EmailContent, given: EmailDesign, logo: boolean): string {
+  const design = owned(given);
   const { colors, fonts } = design;
   const { language, preview, eyebrow, heading, paragraphs = [], rows = [], quote, button, footer = [] } = content;
   const centered = design.align === "center";
