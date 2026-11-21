@@ -45,7 +45,7 @@ function header(design: EmailDesign, logo: boolean, font: string) {
 
 /**
  * An email in a brand's design, the same in every inbox: the logo at the top left, an eyebrow and a heading in the
- * brand's color, then paragraphs, details (each label over its value), a quoted text and one button, small print,
+ * brand's color, then paragraphs, details (each label over its value), a quoted text under a label in the brand's color, one button, small print,
  * and the company's signature. Black on white with every style inline, no dark-mode rules and no backgrounds but the
  * button's: what mail apps change, they change the same way everywhere. `logo` says whether the email carries the
  * inline image "logo"; everything given is escaped.
@@ -90,7 +90,7 @@ export function emailLayout(content: EmailContent, design: EmailDesign, logo: bo
     quote
       ? block(
           "padding:28px 0 0",
-          `<div style="${capitals(body, quiet)}">${escapeHtml(quote.label)}</div>${table(
+          `<div style="${capitals(body, design.color)}">${escapeHtml(quote.label)}</div>${table(
             "width:100%;margin-top:10px",
             `<tr><td style="padding:2px 0 2px 16px;border-left:3px solid ${design.color};font-family:${body};font-size:16px;line-height:1.6;color:${text};white-space:pre-wrap;word-break:break-word">${escapeHtml(quote.text)}</td></tr>`,
           )}`,

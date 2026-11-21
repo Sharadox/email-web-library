@@ -39,6 +39,7 @@ test("lays out everything given, escaped: the logo and name at the top left, the
   expect(html).toContain('href="mailto:ana@example.com"');
   expect(html).toContain("Hello\nthere");
   expect(html).toContain("border-left:3px solid #8d6a2b");
+  expect(html).toContain('text-transform:uppercase;color:#8d6a2b">Message</div>');
   expect(html).toContain("background-color:#8d6a2b;border-radius:8px");
   expect(html).toContain("color:#ffffff;text-decoration:none");
   expect(html).toContain(">Reply to Ana</a>");

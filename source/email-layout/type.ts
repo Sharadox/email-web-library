@@ -18,8 +18,8 @@ export interface EmailDesign {
   /** Whether the company's name is written beside the logo. */
   wordmark?: boolean;
   /**
-   * The brand's color, dark enough to read on white: the eyebrow, the headings, the bar beside a quoted text and the
-   * button. Black when the brand's own color is white.
+   * The brand's color, dark enough to read on white: the logo, the eyebrow, the headings, a quoted text's label and
+   * bar, and the button. Black when the brand's own color is white.
    */
   color: string;
   /** The button's words, on the brand's color: white by default. */
