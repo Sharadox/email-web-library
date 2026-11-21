@@ -63,37 +63,18 @@ await sender.send({
 });
 ```
 
-### In the brand's design
+### In the company's layout
 
-`emailLayout(content, design, logo)` writes the html of an email in a brand's own look, so every email a company sends looks like its website. The design holds its colors, type, rules, header, button and signature. Fonts are stacks the reader's device already has: web fonts would tell a font service the email was opened. Everything given is escaped, and the layout is tables with inline styles, as email clients need; on phones, details stack under their labels.
+`emailLayout(content, design, logos)` writes the html of an email that looks the same in every mail app: no background (the mail app's own shows), and the text, the logo and the button in the foreground color of the reader's theme: black, or white in dark mode. The dark theme is a few rules for the mail apps that honor it (Apple Mail, Outlook on phones and Macs, Outlook.com and others); the others darken the email their own way. Everything else is inline. The font is Geist where the reader has it, the device's own sans otherwise (no web fonts, which would tell a font service the email was opened). A company brings only its logo and name. Details stack each label over its value, a longer text (the visitor's message) last, all alike. Everything given is escaped.
 
 ```ts
-import { emailLayout, type EmailDesign } from "@sharadox/email-web-library";
+import { emailLayout } from "@sharadox/email-web-library/email-layout";
+import type { EmailDesign } from "@sharadox/email-web-library/email-layout/type";
 
 const design: EmailDesign = {
   name: "Sharadox",
-  logo: { width: 30, height: 30 }, // shown size of the inline image "logo"
+  logo: { width: 30, height: 30 }, // shown size of the inline images "logo" (black) and "logo-dark" (white)
   wordmark: true, // the name beside the logo
-  align: "left",
-  colors: {
-    page: "#000",
-    card: "#000",
-    edge: "#262626",
-    text: "#fff",
-    muted: "#a3a3a3",
-    quiet: "#737373",
-    rule: "#2e2e2e",
-    accent: "#fff",
-    box: "#0a0a0a",
-    onAccent: "#000",
-  },
-  fonts: { heading: "Geist, sans-serif", body: "Geist, sans-serif", label: "'Geist Mono', monospace" },
-  heading: { size: 34, weight: 600, letterSpacing: "-0.04em", lineHeight: 1.1 },
-  label: { size: 11, letterSpacing: "0.06em" },
-  rule: "dashed", // between details
-  radius: 0,
-  crosses: true, // a grid's frame, with "+" where its lines cross
-  button: { radius: 999, uppercase: false, letterSpacing: "0" },
   signature: [{ text: "sharadox.com", href: "https://sharadox.com" }],
 };
 
@@ -102,17 +83,18 @@ const html = emailLayout(
     language: "en",
     preview: "Ana sent a message",
     eyebrow: "Contact",
-    heading: "Ana Sousa",
+    heading: "Ana (Villa Mar)",
     rows: [{ label: "Email", value: "ana@example.com", href: "mailto:ana@example.com" }],
     quote: { label: "Message", text: "Hello!" },
     button: { label: "Reply to Ana", href: "mailto:ana@example.com" },
+    footer: [{ label: "Sent", value: "2026-11-21 14:29 UTC" }],
   },
   design,
-  true, // the email carries the inline image "logo"
+  { light: true, dark: true }, // the logos the email carries: "logo" and "logo-dark" (true: "logo" only)
 );
 ```
 
-Optional touches: `colors.accentGradient` (a shiny accent where the device shows gradients), `colors.headerRule` (the line under the header), `eyebrowLine` (a short line before the eyebrow) and `quoteBar` (an accent bar beside a quoted text).
+The black logo should carry a thin white outline: it stays visible where a mail app darkens the email itself. `EMAIL_COLORS` holds the light and dark palettes and `EMAIL_FONT` the font stack.
 
 `sender.verify()` logs in without sending, handy for a health check. `checkEmailMessage` and `checkEmailAddress` are exported for validating input before you get as far as sending.
 

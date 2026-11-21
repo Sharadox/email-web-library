@@ -1,151 +1,147 @@
 import { escapeHtml } from "@sharadox/web-library/html/escape";
-import type { EmailContent, EmailDesign, EmailRow } from "@sharadox/email-web-library/email-layout/type";
+import type { EmailContent, EmailDesign, EmailLogos } from "@sharadox/email-web-library/email-layout/type";
 
 /**
- * On phones, where the email app reads it (Apple Mail, the Gmail apps): narrower sides, and each detail's label over
- * its value, so values keep the whole width.
+ * The colors every email is drawn in: no background (the mail app's own shows), black text on a light theme and white
+ * on a dark one, with grays between them for paragraphs, labels and lines.
  */
-const PHONE =
-  "@media (max-width:520px){.side{padding-left:22px!important;padding-right:22px!important}.label,.value{display:block!important;width:auto!important}.label{padding:14px 0 2px!important}.value{border-top:0!important;padding:0 0 12px!important}}";
+export const EMAIL_COLORS = {
+  light: { text: "#000000", muted: "#3f3f46", quiet: "#71717a", line: "#e4e4e7" },
+  dark: { text: "#ffffff", muted: "#d4d4d8", quiet: "#a1a1aa", line: "#3f3f46" },
+} as const;
+
+/** Geist where the reader has it, the device's own sans otherwise. */
+export const EMAIL_FONT = "Geist, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+
+const { light, dark } = EMAIL_COLORS;
+
+/** The dark theme's rules, one selector per element role. */
+const DARK = `.text{color:${dark.text}!important}.muted{color:${dark.muted}!important}.quiet{color:${dark.quiet}!important}.line{border-color:${dark.line}!important}.button{background-color:${dark.text}!important}.button-text{color:#000000!important}.logo-light{display:none!important}.logo-dark{display:block!important;max-height:none!important;overflow:visible!important}`;
+
+/**
+ * The dark theme, for mail apps that honor it (Apple Mail, Outlook on phones and Macs, and others): white text, light
+ * grays, dark lines, a white button with black words, and the white logo instead of the black one. Said again for
+ * Outlook.com, which marks its dark theme with a `data-ogsc` attribute. Mail apps that ignore it darken the email
+ * their own way, which the black logo's white outline survives.
+ */
+const DARK_RULES = `@media (prefers-color-scheme:dark){${DARK}}${DARK.replace(/(^|\})\./g, "$1[data-ogsc] .")}`;
 
 /** A table that's only there for layout, as email clients need. */
 const table = (style: string, rows: string, width?: number) =>
-  `<table role="presentation" cellpadding="0" cellspacing="0" border="0"${width ? ` width="${width}"` : ""} style="border-collapse:separate;${style}">${rows}</table>`;
+  `<table role="presentation" cellpadding="0" cellspacing="0" border="0"${width ? ` width="${width}"` : ""} style="border-collapse:collapse;${style}">${rows}</table>`;
 
-/** The accent as a background: the gradient where the reader's device shows one, the plain color otherwise. */
-const accentBackground = ({ colors }: EmailDesign) =>
-  `background-color:${colors.accent};${colors.accentGradient ? `background-image:${colors.accentGradient};` : ""}`;
+/** The font, on everything. */
+const FONT = `font-family:${EMAIL_FONT}`;
 
-/** Text in the label style: small, spaced capitals. */
-const labelStyle = (design: EmailDesign, color: string) =>
-  `font-family:${design.fonts.label};font-size:${design.label.size}px;line-height:1.5;letter-spacing:${design.label.letterSpacing};text-transform:uppercase;color:${color}`;
+/** Small spaced capitals in one of the theme's colors: eyebrows and labels. */
+const capitals = (color: "text" | "quiet") =>
+  `class="${color}" style="${FONT};font-size:12px;font-weight:600;line-height:1.5;letter-spacing:0.08em;text-transform:uppercase;color:${light[color]}"`;
 
 /** A value, as a link when it has one. */
-const value = ({ value: text, href }: { value: string; href?: string | undefined }, color: string) =>
+const value = ({ value: text, href }: { value: string; href?: string | undefined }, color: "text" | "quiet") =>
   href
-    ? `<a href="${escapeHtml(href)}" style="color:${color};text-decoration:underline;text-underline-offset:3px">${escapeHtml(text)}</a>`
+    ? `<a class="${color}" href="${escapeHtml(href)}" style="color:${light[color]};text-decoration:underline">${escapeHtml(text)}</a>`
     : escapeHtml(text);
 
-/** The logo, and the company's name beside it with `wordmark`. */
-function header(design: EmailDesign, logo: boolean) {
-  const { colors, fonts } = design;
-  const mark =
-    logo && design.logo
-      ? `<td style="vertical-align:middle;padding:0${design.wordmark ? " 12px 0 0" : ""}"><img src="cid:logo" width="${design.logo.width}" height="${design.logo.height}" alt="${escapeHtml(design.name)}" style="display:block;width:${design.logo.width}px;height:${design.logo.height}px;border:0"></td>`
-      : "";
+/** The logo: the black one, and the white one for dark themes, hidden unless a dark theme shows it. */
+function mark(design: EmailDesign, logos: EmailLogos) {
+  if (!logos.light || !design.logo) return "";
+  const { width, height } = design.logo;
+  const image = (id: string) =>
+    `<img src="cid:${id}" width="${width}" height="${height}" alt="${escapeHtml(design.name)}" style="display:block;width:${width}px;height:${height}px;border:0">`;
+  const darkLogo = logos.dark
+    ? `<div class="logo-dark" style="display:none;max-height:0;overflow:hidden;mso-hide:all">${image("logo-dark")}</div>`
+    : "";
+  return `<td style="vertical-align:middle;padding:0${design.wordmark ? " 10px 0 0" : ""}"><div class="logo-light">${image("logo")}</div>${darkLogo}</td>`;
+}
+
+/** The logo at the top left, and the company's name beside it with `wordmark` (or alone, without a logo). */
+function header(design: EmailDesign, logos: EmailLogos) {
+  const logo = mark(design, logos);
   const name =
-    design.wordmark || !mark
-      ? `<td style="vertical-align:middle;font-family:${fonts.body};font-size:19px;font-weight:600;letter-spacing:-0.02em;color:${colors.text}">${escapeHtml(design.name)}</td>`
+    design.wordmark || !logo
+      ? `<td class="text" style="vertical-align:middle;${FONT};font-size:19px;font-weight:700;letter-spacing:-0.01em;color:${light.text}">${escapeHtml(design.name)}</td>`
       : "";
-  return table(design.align === "center" ? "margin:0 auto" : "", `<tr>${mark}${name}</tr>`);
+  return table("", `<tr>${logo}${name}</tr>`);
 }
 
-/** The details, one per line: the label above or beside its value, rules between them. */
-function details(design: EmailDesign, rows: readonly EmailRow[]) {
-  const { colors, fonts } = design;
-  const line = `border-top:1px ${design.rule} ${colors.rule}`;
+/** The details, each label over its value, lines between them; a longer text keeps its line breaks. */
+function details(entries: readonly { label: string; inside: string; keepLines?: boolean }[]) {
+  const line = `class="line" style="padding:14px 0;border-top:1px solid ${light.line};${FONT};word-break:break-word"`;
   return table(
-    "width:100%;margin:28px 0 0",
-    rows
-      .map(
-        (row) =>
-          `<tr><td class="label" style="${line};padding:14px 16px 14px 0;width:136px;vertical-align:top;${labelStyle(design, colors.quiet)}">${escapeHtml(row.label)}</td><td class="value" style="${line};padding:12px 0;vertical-align:top;font-family:${fonts.body};font-size:15px;line-height:1.55;color:${colors.text};word-break:break-word">${value(row, colors.text)}</td></tr>`,
-      )
-      .join("") + `<tr><td colspan="2" style="${line};font-size:0;line-height:0">&nbsp;</td></tr>`,
-  );
-}
-
-/** A longer text in its own box, keeping its line breaks. */
-function quoted(design: EmailDesign, quote: { label: string; text: string }) {
-  const { colors, fonts } = design;
-  const bar = design.quoteBar ? `border-left:2px solid ${colors.accent};` : "";
-  return `<p style="margin:32px 0 10px;${labelStyle(design, colors.quiet)}">${escapeHtml(quote.label)}</p>${table(
     "width:100%",
-    `<tr><td style="${bar}padding:20px 22px;background-color:${colors.box};border:1px solid ${colors.edge};border-radius:${Math.min(design.radius, 14)}px;font-family:${fonts.body};font-size:15px;line-height:1.7;color:${colors.text};white-space:pre-wrap;word-break:break-word">${escapeHtml(quote.text)}</td></tr>`,
-  )}`;
-}
-
-/** The one thing to do next, as a button that works in every email client (a padded link). */
-function action(design: EmailDesign, button: { label: string; href: string }) {
-  const { colors, fonts } = design;
-  return table(
-    `margin:32px ${design.align === "center" ? "auto" : "0"} 0`,
-    `<tr><td style="${accentBackground(design)}border-radius:${design.button.radius}px"><a href="${escapeHtml(button.href)}" style="display:inline-block;padding:14px 28px;font-family:${fonts.body};font-size:14px;font-weight:600;letter-spacing:${design.button.letterSpacing};${design.button.uppercase ? "text-transform:uppercase;" : ""}color:${colors.onAccent};text-decoration:none;border-radius:${design.button.radius}px">${escapeHtml(button.label)}</a></td></tr>`,
-  );
-}
-
-/** A "+" where two of the frame's lines cross, centered on them (it spans two half cells each way). */
-const cross = ({ fonts, colors }: EmailDesign) =>
-  `<td colspan="2" rowspan="2" width="12" height="12" align="center" valign="middle" style="width:12px;height:12px;padding:0;font-family:${fonts.label};font-size:19px;line-height:12px;color:${colors.quiet}">+</td>`;
-
-/**
- * The card inside a grid's frame, drawn from table cells so it holds in every email client: lines along its four
- * sides, each through the middle of a pair of half cells, and a "+" where they cross at each corner.
- */
-function framed(design: EmailDesign, card: string) {
-  const line = `1px solid ${design.colors.edge}`;
-  const half = (style = "") =>
-    `<td width="6" style="width:6px;padding:0;font-size:0;line-height:0;${style}">&nbsp;</td>`;
-  const across = (style: string) => `<td style="height:6px;padding:0;font-size:0;line-height:0;${style}">&nbsp;</td>`;
-  return table(
-    "width:100%;max-width:612px",
-    `<tr>${cross(design)}${across(`border-bottom:${line}`)}${cross(design)}</tr><tr>${across("")}</tr>
-<tr>${half(`border-right:${line}`)}${half()}<td style="padding:0;background-color:${design.colors.card}">${card}</td>${half(`border-right:${line}`)}${half()}</tr>
-<tr>${cross(design)}${across(`border-bottom:${line}`)}${cross(design)}</tr><tr>${across("")}</tr>`,
-    612,
+    entries
+      .map(
+        (entry) =>
+          `<tr><td ${line}><div ${capitals("quiet")}>${escapeHtml(entry.label)}</div><div class="text" style="padding-top:4px;font-size:16px;line-height:1.5;color:${light.text}${entry.keepLines ? ";white-space:pre-wrap" : ""}">${entry.inside}</div></td></tr>`,
+      )
+      .join("") +
+      `<tr><td class="line" style="border-top:1px solid ${light.line};font-size:0;line-height:0">&nbsp;</td></tr>`,
   );
 }
 
 /**
- * An email in a brand's design, the same in every inbox: its logo (and name), a rule in its color, an eyebrow and a
- * heading, then paragraphs, details, a quoted text and one button, small print, and the company's signature. Built
- * from tables with inline styles, as email clients need; everything given is escaped. `logo` says whether the email
- * carries the inline image "logo".
+ * An email that looks the same in every inbox: the logo at the top left, an eyebrow and a heading, paragraphs, the
+ * details (each label over its value, a longer text last, all alike), one button, small print and the company's
+ * signature. No background: the mail app's own shows, with the text, logo and button in the theme's foreground
+ * color (black, or white in dark mode where the app honors it). Geist where the reader has it, the device's own sans
+ * otherwise. Every style is inline but the dark theme's; everything given is escaped. `logos` says which logo images
+ * the email carries (`true`: the black one only).
  *
  * @example
  * emailLayout({ language: "en", preview: "Ana sent a message", eyebrow: "Contact", heading: "Ana",
- *   rows: [{ label: "Email", value: "ana@example.com" }] }, SHARADOX_EMAIL, true);
+ *   rows: [{ label: "Email", value: "ana@example.com" }] }, { name: "Acme" }, false);
  */
-export function emailLayout(content: EmailContent, design: EmailDesign, logo: boolean): string {
-  const { colors, fonts } = design;
+export function emailLayout(content: EmailContent, design: EmailDesign, logos: EmailLogos | boolean): string {
+  const carried = typeof logos === "boolean" ? { light: logos, dark: false } : logos;
   const { language, preview, eyebrow, heading, paragraphs = [], rows = [], quote, button, footer = [] } = content;
-  const centered = design.align === "center";
-  const eyebrowLine = design.eyebrowLine
-    ? `<span style="display:inline-block;width:28px;height:1px;${accentBackground(design)}vertical-align:middle;margin:0 12px 2px 0"></span>`
-    : "";
-  const small = footer.length
-    ? `<tr><td class="side" style="padding:22px 36px;border-top:1px ${design.rule} ${colors.rule};${labelStyle(design, colors.quiet)};text-transform:none;letter-spacing:0">${footer
-        .map((row) => `${escapeHtml(row.label)}: ${value(row, colors.muted)}`)
-        .join("<br>")}</td></tr>`
-    : "";
-  const signature = design.signature?.length
-    ? `<tr><td align="center" style="padding:24px 12px 0;${labelStyle(design, colors.quiet)}">${design.signature
-        .map(
-          (line) =>
-            `<span style="white-space:nowrap">${value({ value: line.text, href: line.href }, colors.quiet)}</span>`,
+  const block = (style: string, inside: string) => `<tr><td style="${style}">${inside}</td></tr>`;
+  const entries = [
+    ...rows.map((row) => ({ label: row.label, inside: value(row, "text") })),
+    ...(quote ? [{ label: quote.label, inside: escapeHtml(quote.text), keepLines: true }] : []),
+  ];
+  const parts = [
+    block("padding:0 0 36px", header(design, carried)),
+    block("padding:0 0 10px", `<div ${capitals("text")}>${escapeHtml(eyebrow)}</div>`),
+    block(
+      "padding:0",
+      `<h1 class="text" style="margin:0;${FONT};font-size:30px;font-weight:700;line-height:1.2;letter-spacing:-0.01em;color:${light.text}">${escapeHtml(heading)}</h1>`,
+    ),
+    ...paragraphs.map((paragraph) =>
+      block(
+        "padding:16px 0 0",
+        `<p class="muted" style="margin:0;${FONT};font-size:16px;line-height:1.6;color:${light.muted}">${escapeHtml(paragraph)}</p>`,
+      ),
+    ),
+    entries.length ? block("padding:28px 0 0", details(entries)) : "",
+    button
+      ? block(
+          "padding:32px 0 0",
+          table(
+            "",
+            `<tr><td class="button" style="background-color:${light.text};border-radius:8px"><a class="button-text" href="${escapeHtml(button.href)}" style="display:inline-block;padding:14px 26px;${FONT};font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px">${escapeHtml(button.label)}</a></td></tr>`,
+          ),
         )
-        .join(`<span style="padding:0 10px">&middot;</span>`)}</td></tr>`
-    : "";
-  const card = `<tr><td class="side" style="padding:32px 36px 0;text-align:${design.align}">${header(design, logo)}</td></tr>
-<tr><td class="side" style="padding:24px 36px 0"><div style="height:1px;line-height:1px;font-size:0;${colors.headerRule ? `background:${colors.headerRule};` : accentBackground(design)}">&nbsp;</div></td></tr>
-<tr><td class="side" style="padding:32px 36px 36px">
-<p style="margin:0 0 14px;text-align:${design.align};${labelStyle(design, colors.accent)}">${eyebrowLine}${escapeHtml(eyebrow)}</p>
-<h1 style="margin:0;text-align:${design.align};font-family:${fonts.heading};font-size:${design.heading.size}px;font-weight:${design.heading.weight};line-height:${design.heading.lineHeight};letter-spacing:${design.heading.letterSpacing};color:${colors.text}">${escapeHtml(heading)}</h1>
-${paragraphs.map((paragraph) => `<p style="margin:18px 0 0;text-align:${centered ? "center" : "left"};font-family:${fonts.body};font-size:15px;line-height:1.7;color:${colors.muted}">${escapeHtml(paragraph)}</p>`).join("")}${rows.length ? details(design, rows) : ""}${quote ? quoted(design, quote) : ""}${button ? action(design, button) : ""}
-</td></tr>${small}`;
-  return `<!doctype html><html lang="${escapeHtml(language)}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light dark"><meta name="supported-color-schemes" content="light dark"><title>${escapeHtml(heading)}</title><style>${PHONE}</style></head><body style="margin:0;padding:0;background-color:${colors.page}">
+      : "",
+    footer.length
+      ? block(
+          "padding:36px 0 0",
+          `<div class="line quiet" style="padding-top:20px;border-top:1px solid ${light.line};${FONT};font-size:13px;line-height:1.6;color:${light.quiet}">${footer
+            .map((row) => `${escapeHtml(row.label)}: ${value(row, "quiet")}`)
+            .join("<br>")}</div>`,
+        )
+      : "",
+    design.signature?.length
+      ? block(
+          `padding:${footer.length ? 16 : 36}px 0 0`,
+          `<div class="quiet" style="${FONT};font-size:13px;line-height:1.6;color:${light.quiet}">${design.signature
+            .map((signed) => value({ value: signed.text, href: signed.href }, "quiet"))
+            .join(" &middot; ")}</div>`,
+        )
+      : "",
+  ];
+  return `<!doctype html><html lang="${escapeHtml(language)}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light dark"><meta name="supported-color-schemes" content="light dark"><title>${escapeHtml(heading)}</title><style>:root{color-scheme:light dark;supported-color-schemes:light dark}${DARK_RULES}</style></head><body style="margin:0;padding:0">
 <div style="display:none;max-height:0;overflow:hidden;opacity:0">${escapeHtml(preview)}</div>
-${table(
-  `width:100%;background-color:${colors.page}`,
-  `<tr><td align="center" style="padding:28px 8px 40px">${
-    design.crosses
-      ? framed(design, table("width:100%", card))
-      : table(
-          `width:100%;max-width:600px;background-color:${colors.card};border:1px solid ${colors.edge};border-radius:${design.radius}px`,
-          card,
-          600,
-        )
-  }${signature ? table("width:100%;max-width:600px", signature) : ""}</td></tr>`,
-)}
+${table("width:100%", `<tr><td style="padding:32px 24px 40px">${table("width:100%;max-width:560px", parts.join("\n"), 560)}</td></tr>`)}
 </body></html>`;
 }
