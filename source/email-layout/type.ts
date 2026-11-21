@@ -6,70 +6,27 @@ export interface EmailRow {
 }
 
 /**
- * A brand's look for its emails: colors, type and details, so every email it sends looks like its website. Fonts are
- * font stacks the reader's device already has (no web fonts, which would tell a font service the email was opened).
+ * What makes an email a brand's. Every email shares one simple layout, black on white, that every mail app shows the
+ * same way and darkens on its own in dark mode; a brand only brings its logo, its color and its type. Fonts are font
+ * stacks the reader's device already has (no web fonts, which would tell a font service the email was opened).
  */
 export interface EmailDesign {
   /** The company: the logo's description, and its name beside the logo with `wordmark`. */
   name: string;
-  /** The size the inline image "logo" is shown at, when the email carries one. */
+  /** The size the inline image "logo" is shown at, when the email carries one: the real logo, without a background. */
   logo?: { width: number; height: number };
   /** Whether the company's name is written beside the logo. */
-  wordmark: boolean;
-  /** Where the header and the heading sit. */
-  align: "left" | "center";
-  colors: {
-    /** Around the card. */
-    page: string;
-    /** The card itself. */
-    card: string;
-    /** The card's edge. */
-    edge: string;
-    /** Headings and values. */
-    text: string;
-    /** Paragraphs. */
-    muted: string;
-    /** Labels and small print. */
-    quiet: string;
-    /** Rules between details. */
-    rule: string;
-    /** The brand's color: the eyebrow, the rule under the header, the button. */
-    accent: string;
-    /** A CSS gradient over the accent where the reader's device shows one (shiny gold). */
-    accentGradient?: string;
-    /** The line under the header, a color or a CSS gradient, when it isn't the accent (a hairline fading at its ends). */
-    headerRule?: string;
-    /**
-     * The header line's plain color, under its gradient: what clients that drop gradients (some privacy-minded ones)
-     * show instead; the accent by default.
-     */
-    headerRuleColor?: string;
-    /** Behind a quoted text. */
-    box: string;
-    /** The button's words. */
-    onAccent: string;
-  };
-  fonts: {
-    heading: string;
-    body: string;
-    /** Eyebrows, labels and small print. */
-    label: string;
-  };
-  heading: { size: number; weight: number; letterSpacing: string; lineHeight: number };
-  /** Eyebrows and labels in capitals, spaced. */
-  label: { size: number; letterSpacing: string };
-  /** The rules between details: solid, or dashed like the brand's grid. */
-  rule: "solid" | "dashed";
-  /** The card's corners (0 for square). */
-  radius: number;
-  /** "+" marks at the card's corners, where a grid's lines would cross. */
-  crosses?: boolean;
-  /** A short line before the eyebrow. */
-  eyebrowLine?: boolean;
-  /** A bar in the accent at the left of a quoted text. */
-  quoteBar?: boolean;
-  button: { radius: number; uppercase: boolean; letterSpacing: string };
-  /** The company's lines at the very bottom of every email (its slogan, its site). */
+  wordmark?: boolean;
+  /**
+   * The brand's color, dark enough to read on white: the eyebrow, the headings, the bar beside a quoted text and the
+   * button. Black when the brand's own color is white.
+   */
+  color: string;
+  /** The button's words, on the brand's color: white by default. */
+  onColor?: string;
+  /** The headings' font stack, and the rest's; the device's own sans by default. */
+  fonts?: { heading?: string; body?: string };
+  /** The company's lines at the very bottom of every email (its site). */
   signature?: readonly { text: string; href?: string }[];
 }
 
@@ -84,9 +41,9 @@ export interface EmailContent {
   heading: string;
   /** Paragraphs under the heading. */
   paragraphs?: readonly string[];
-  /** The details table. */
+  /** The details, each label over its value. */
   rows?: readonly EmailRow[];
-  /** A longer text in its own box, keeping its line breaks (a visitor's message), with its label. */
+  /** A longer text keeping its line breaks (a visitor's message), with its label. */
   quote?: { label: string; text: string };
   /** The one thing to do next, as a button: reply, call, visit. */
   button?: { label: string; href: string };
