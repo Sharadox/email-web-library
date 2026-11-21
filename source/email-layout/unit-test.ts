@@ -1,13 +1,11 @@
 import { expect, test } from "vitest";
-import { EMAIL_COLORS, emailLayout, SYSTEM_FONT } from "@sharadox/email-web-library/email-layout";
+import { EMAIL_COLORS, EMAIL_FONT, emailLayout } from "@sharadox/email-web-library/email-layout";
 import type { EmailContent, EmailDesign } from "@sharadox/email-web-library/email-layout/type";
 
 const design: EmailDesign = {
   name: "Acme & Co",
   logo: { width: 30, height: 30 },
   wordmark: true,
-  color: "#8d6a2b",
-  fonts: { heading: "Georgia, serif", body: "Geist, sans-serif" },
   signature: [{ text: "acme.com", href: "https://acme.com" }],
 };
 
@@ -26,63 +24,69 @@ const content: EmailContent = {
   footer: [{ label: "Page", value: "https://example.com/en", href: "https://example.com/en" }],
 };
 
-test("lays out everything given, escaped: the logo and name at the top left, the brand's color on what's its", () => {
-  const html = emailLayout(content, design, true);
+test("lays out everything given, escaped, in black on no background, in Geist or the device's own sans", () => {
+  const html = emailLayout(content, design, { light: true, dark: true });
   expect(html).toContain('<html lang="en">');
   expect(html).toContain('<img src="cid:logo" width="30" height="30" alt="Acme &amp; Co"');
-  expect(html).toContain('color:#8d6a2b">Acme &amp; Co</td>');
+  expect(html).toContain(">Acme &amp; Co</td>");
   expect(html).toContain("Ana &lt;Villa Mar&gt;");
   expect(html).not.toContain("<Villa Mar>");
-  expect(html).toMatch(/<h1 style="[^"]*font-family:Georgia, serif;[^"]*color:#8d6a2b">/);
-  expect(html).toContain('letter-spacing:0.08em;text-transform:uppercase;color:#8d6a2b">Contact</div>');
+  expect(html).toMatch(/<h1 class="text" style="[^"]*color:#000000">/);
   expect(html).toContain("Thanks for writing.");
   expect(html).toContain('href="mailto:ana@example.com"');
-  expect(html).toContain("Hello\nthere");
-  expect(html).toContain("border-left:3px solid #8d6a2b");
-  expect(html).toContain('text-transform:uppercase;color:#8d6a2b">Message</div>');
-  expect(html).toContain("background-color:#8d6a2b;border-radius:8px");
-  expect(html).toContain("color:#ffffff;text-decoration:none");
+  expect(html).toContain('class="button" style="background-color:#000000;border-radius:8px"');
   expect(html).toContain(">Reply to Ana</a>");
-  expect(html).toContain('Page: <a href="https://example.com/en"');
-  expect(html).toContain('<a href="https://acme.com"');
+  expect(html).toContain('Page: <a class="quiet" href="https://example.com/en"');
+  expect(html).toContain('<a class="quiet" href="https://acme.com"');
   expect(html).toContain("Ana sent a message");
+  expect(html).toContain(`font-family:${EMAIL_FONT}`);
+  expect(EMAIL_FONT.startsWith("Geist,")).toBe(true);
+  // No background anywhere but the button's (and its dark rule's).
+  expect(html.match(/background-color:/g)).toHaveLength(3);
 });
 
-test("is black on white with every style inline: nothing for a mail app to drop or recolor differently", () => {
-  const html = emailLayout(content, design, true);
-  expect(html).toContain(`background-color:${EMAIL_COLORS.background}`);
-  expect(html).not.toContain("<style");
-  expect(html).not.toContain("color-scheme");
-  expect(html).not.toContain("gradient(");
+test("shows the message as the last detail, alike the others, keeping its line breaks", () => {
+  const html = emailLayout(content, design, false);
+  expect(html.match(/<td class="line" style="padding:14px 0;/g)).toHaveLength(3);
+  expect(html).toContain(
+    '>Message</div><div class="text" style="padding-top:4px;font-size:16px;line-height:1.5;color:#000000;white-space:pre-wrap">Hello\nthere</div>',
+  );
+  expect(html).not.toContain("border-left");
 });
 
-test("without a logo it writes the name in the brand's color; fonts and the button's words have defaults", () => {
-  const plain: EmailDesign = { name: "Plain", color: "#000000", onColor: "#fafafa" };
+test("turns white in a dark theme, where the mail app honors it, Outlook.com included, with the white logo", () => {
+  const html = emailLayout(content, design, { light: true, dark: true });
+  expect(html).toContain('<meta name="color-scheme" content="light dark">');
+  expect(html).toContain(`@media (prefers-color-scheme:dark){.text{color:${EMAIL_COLORS.dark.text}!important}`);
+  expect(html).toContain("[data-ogsc] .text{color:#ffffff!important}");
+  expect(html).toContain(".button{background-color:#ffffff!important}.button-text{color:#000000!important}");
+  expect(html).toContain(
+    '<div class="logo-dark" style="display:none;max-height:0;overflow:hidden;mso-hide:all"><img src="cid:logo-dark"',
+  );
+  expect(html).toContain(".logo-light{display:none!important}.logo-dark{display:block!important");
+});
+
+test("without a logo it writes the name; a logo it doesn't carry isn't drawn; without wordmark it stands alone", () => {
   const html = emailLayout(
     { language: "pt", preview: "P", eyebrow: "E", heading: "H", button: { label: "B", href: "https://x.pt" } },
-    plain,
+    { name: "Plain" },
     true,
   );
   expect(html).not.toContain("cid:logo");
   expect(html).toContain(">Plain</td>");
-  expect(html).toContain(`font-family:${SYSTEM_FONT}`);
-  expect(html).toContain("color:#fafafa;text-decoration:none");
-  expect(html).not.toContain("<p style");
-  // Headings take the body's font when they have none of their own.
-  expect(emailLayout(content, { ...plain, fonts: { body: "Inter" } }, false)).toMatch(
-    /<h1 style="margin:0;font-family:Inter;/,
-  );
-  // A logo it doesn't carry isn't drawn, and without wordmark a carried logo stands alone.
+  expect(html).not.toContain("<p class");
+  expect(html).not.toContain('<td class="line"');
   expect(emailLayout(content, { ...design, wordmark: false }, false)).toContain(">Acme &amp; Co</td>");
   const alone = emailLayout(content, { ...design, wordmark: false }, true);
   expect(alone).toContain("cid:logo");
+  expect(alone).not.toContain("cid:logo-dark");
   expect(alone).not.toContain(">Acme &amp; Co</td>");
 });
 
-test("puts the signature right after the content when there's no small print", () => {
+test("puts the signature right after the content when there's no small print, and leaves out what isn't given", () => {
   const html = emailLayout({ ...content, footer: [], rows: [], quote: undefined }, design, false);
-  expect(html).toContain("padding:36px 0 0;font-family:Geist");
+  expect(html).toContain('<td style="padding:36px 0 0"><div class="quiet"');
   expect(html).not.toContain("Page:");
-  expect(emailLayout({ ...content, button: undefined }, design, false)).not.toContain("border-radius:8px");
-  expect(emailLayout({ ...content }, { ...design, signature: [] }, false)).not.toContain("acme.com");
+  expect(emailLayout({ ...content, button: undefined }, design, false)).not.toContain('class="button"');
+  expect(emailLayout(content, { ...design, signature: [] }, false)).not.toContain("acme.com");
 });

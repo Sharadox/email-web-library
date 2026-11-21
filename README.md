@@ -63,9 +63,9 @@ await sender.send({
 });
 ```
 
-### In the brand's design
+### In the company's layout
 
-`emailLayout(content, design, logo)` writes the html of an email that looks the same in every mail app: one simple layout, black on white, with every style inline and nothing for a mail app to drop or recolor its own way (no dark-mode rules, no backgrounds but the button's, no gradients). In dark mode the mail app darkens it as it darkens any email. A brand brings only what makes it its own: the logo at the top left (the real logo, without a background), its color on the eyebrow, the headings, the bar beside a quoted text and the button, and its fonts. Fonts are stacks the reader's device already has: web fonts would tell a font service the email was opened. Everything given is escaped; details stack each label over its value, the same on a phone and a computer.
+`emailLayout(content, design, logos)` writes the html of an email that looks the same in every mail app: no background (the mail app's own shows), and the text, the logo and the button in the foreground color of the reader's theme: black, or white in dark mode. The dark theme is a few rules for the mail apps that honor it (Apple Mail, Outlook on phones and Macs, Outlook.com and others); the others darken the email their own way. Everything else is inline. The font is Geist where the reader has it, the device's own sans otherwise (no web fonts, which would tell a font service the email was opened). A company brings only its logo and name. Details stack each label over its value, a longer text (the visitor's message) last, all alike. Everything given is escaped.
 
 ```ts
 import { emailLayout } from "@sharadox/email-web-library/email-layout";
@@ -73,10 +73,8 @@ import type { EmailDesign } from "@sharadox/email-web-library/email-layout/type"
 
 const design: EmailDesign = {
   name: "Sharadox",
-  logo: { width: 30, height: 30 }, // shown size of the inline image "logo"
+  logo: { width: 30, height: 30 }, // shown size of the inline images "logo" (black) and "logo-dark" (white)
   wordmark: true, // the name beside the logo
-  color: "#000000", // the brand's color, dark enough to read on white (black for a white brand)
-  fonts: { heading: "Geist, Helvetica, Arial, sans-serif" }, // the body's font and the device's own sans otherwise
   signature: [{ text: "sharadox.com", href: "https://sharadox.com" }],
 };
 
@@ -92,11 +90,11 @@ const html = emailLayout(
     footer: [{ label: "Sent", value: "2026-11-21 14:29 UTC" }],
   },
   design,
-  true, // the email carries the inline image "logo"
+  { light: true, dark: true }, // the logos the email carries: "logo" and "logo-dark" (true: "logo" only)
 );
 ```
 
-`EMAIL_COLORS` is the shared palette (background, text, muted, quiet, line) and `SYSTEM_FONT` the default font stack.
+The black logo should carry a thin white outline: it stays visible where a mail app darkens the email itself. `EMAIL_COLORS` holds the light and dark palettes and `EMAIL_FONT` the font stack.
 
 `sender.verify()` logs in without sending, handy for a health check. `checkEmailMessage` and `checkEmailAddress` are exported for validating input before you get as far as sending.
 

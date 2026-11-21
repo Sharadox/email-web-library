@@ -6,31 +6,32 @@ export interface EmailRow {
 }
 
 /**
- * What makes an email a brand's. Every email shares one simple layout, black on white, that every mail app shows the
- * same way and darkens on its own in dark mode; a brand only brings its logo, its color and its type. Fonts are font
- * stacks the reader's device already has (no web fonts, which would tell a font service the email was opened).
+ * What makes an email a company's. Every email shares one layout: no background (the mail app's own shows), text,
+ * logo and button in the foreground color of the reader's theme (black, or white in dark mode), Geist where the
+ * reader has it; a company only brings its logo and name.
  */
 export interface EmailDesign {
   /** The company: the logo's description, and its name beside the logo with `wordmark`. */
   name: string;
-  /** The size the inline image "logo" is shown at, when the email carries one: the real logo, without a background. */
+  /**
+   * The size the logo is shown at, when the email carries it: the inline image "logo" (the real logo in black, with
+   * a thin white outline that keeps it visible where a mail app darkens the email itself), and, for mail apps in
+   * dark mode, "logo-dark" (the same in white).
+   */
   logo?: { width: number; height: number };
   /** Whether the company's name is written beside the logo. */
   wordmark?: boolean;
-  /**
-   * The brand's color, dark enough to read on white: the logo, the eyebrow, the headings, a quoted text's label and
-   * bar, and the button. Black when the brand's own color is white.
-   */
-  color: string;
-  /** The button's words, on the brand's color: white by default. */
-  onColor?: string;
-  /** The headings' font stack, and the rest's; the device's own sans by default. */
-  fonts?: { heading?: string; body?: string };
   /** The company's lines at the very bottom of every email (its site). */
   signature?: readonly { text: string; href?: string }[];
 }
 
-/** What one email says, in the brand's design. */
+/** Which logo images an email carries, as inline images "logo" and "logo-dark". */
+export interface EmailLogos {
+  light: boolean;
+  dark: boolean;
+}
+
+/** What one email says. */
 export interface EmailContent {
   /** The language of the email, for the html's `lang`. */
   language: string;
@@ -43,7 +44,7 @@ export interface EmailContent {
   paragraphs?: readonly string[];
   /** The details, each label over its value. */
   rows?: readonly EmailRow[];
-  /** A longer text keeping its line breaks (a visitor's message), with its label. */
+  /** A longer text keeping its line breaks (a visitor's message), shown as the last detail, with its label. */
   quote?: { label: string; text: string };
   /** The one thing to do next, as a button: reply, call, visit. */
   button?: { label: string; href: string };
