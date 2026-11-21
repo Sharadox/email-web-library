@@ -8,6 +8,14 @@ import type { EmailContent, EmailDesign, EmailRow } from "@sharadox/email-web-li
 const PHONE =
   "@media (max-width:520px){.side{padding-left:22px!important;padding-right:22px!important}.label,.value{display:block!important;width:auto!important}.label{padding:14px 0 2px!important}.value{border-top:0!important;padding:0 0 12px!important}}";
 
+/**
+ * The email's colors are already its own in both light and dark: said in every form a client may look for (the
+ * meta tags, the color-scheme property, a dark color-scheme rule keeping the same page color), so a client in dark
+ * mode shows it as designed instead of recoloring it (Proton Mail, Apple Mail, Outlook).
+ */
+const OWN_COLORS = (page: string) =>
+  `:root{color-scheme:light dark;supported-color-schemes:light dark}@media (prefers-color-scheme:dark){body,.page{background-color:${page}!important}}`;
+
 /** A table that's only there for layout, as email clients need. */
 const table = (style: string, rows: string, width?: number) =>
   `<table role="presentation" cellpadding="0" cellspacing="0" border="0"${width ? ` width="${width}"` : ""} style="border-collapse:separate;${style}">${rows}</table>`;
@@ -15,6 +23,18 @@ const table = (style: string, rows: string, width?: number) =>
 /** The accent as a background: the gradient where the reader's device shows one, the plain color otherwise. */
 const accentBackground = ({ colors }: EmailDesign) =>
   `background-color:${colors.accent};${colors.accentGradient ? `background-image:${colors.accentGradient};` : ""}`;
+
+/**
+ * The line under the header: its own color or gradient (over a plain color, for clients that drop gradients), or the
+ * accent.
+ */
+function headerRule(design: EmailDesign) {
+  const { headerRule: rule, headerRuleColor, accent } = design.colors;
+  if (!rule) return accentBackground(design);
+  return rule.includes("gradient(")
+    ? `background-color:${headerRuleColor ?? accent};background-image:${rule};`
+    : `background-color:${rule};`;
+}
 
 /** Text in the label style: small, spaced capitals. */
 const labelStyle = (design: EmailDesign, color: string) =>
@@ -127,16 +147,17 @@ export function emailLayout(content: EmailContent, design: EmailDesign, logo: bo
         .join(`<span style="padding:0 10px">&middot;</span>`)}</td></tr>`
     : "";
   const card = `<tr><td class="side" style="padding:32px 36px 0;text-align:${design.align}">${header(design, logo)}</td></tr>
-<tr><td class="side" style="padding:24px 36px 0"><div style="height:1px;line-height:1px;font-size:0;${colors.headerRule ? `background:${colors.headerRule};` : accentBackground(design)}">&nbsp;</div></td></tr>
+<tr><td class="side" style="padding:24px 36px 0"><div style="height:1px;line-height:1px;font-size:0;${headerRule(design)}">&nbsp;</div></td></tr>
 <tr><td class="side" style="padding:32px 36px 36px">
 <p style="margin:0 0 14px;text-align:${design.align};${labelStyle(design, colors.accent)}">${eyebrowLine}${escapeHtml(eyebrow)}</p>
 <h1 style="margin:0;text-align:${design.align};font-family:${fonts.heading};font-size:${design.heading.size}px;font-weight:${design.heading.weight};line-height:${design.heading.lineHeight};letter-spacing:${design.heading.letterSpacing};color:${colors.text}">${escapeHtml(heading)}</h1>
 ${paragraphs.map((paragraph) => `<p style="margin:18px 0 0;text-align:${centered ? "center" : "left"};font-family:${fonts.body};font-size:15px;line-height:1.7;color:${colors.muted}">${escapeHtml(paragraph)}</p>`).join("")}${rows.length ? details(design, rows) : ""}${quote ? quoted(design, quote) : ""}${button ? action(design, button) : ""}
 </td></tr>${small}`;
-  return `<!doctype html><html lang="${escapeHtml(language)}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light dark"><meta name="supported-color-schemes" content="light dark"><title>${escapeHtml(heading)}</title><style>${PHONE}</style></head><body style="margin:0;padding:0;background-color:${colors.page}">
+  return `<!doctype html><html lang="${escapeHtml(language)}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light dark"><meta name="supported-color-schemes" content="light dark"><title>${escapeHtml(heading)}</title><style>${OWN_COLORS(colors.page)}${PHONE}</style></head><body class="page" style="margin:0;padding:0;color-scheme:light dark;background-color:${colors.page}">
+<style>${OWN_COLORS(colors.page)}${PHONE}</style>
 <div style="display:none;max-height:0;overflow:hidden;opacity:0">${escapeHtml(preview)}</div>
 ${table(
-  `width:100%;background-color:${colors.page}`,
+  `width:100%;color-scheme:light dark;background-color:${colors.page}`,
   `<tr><td align="center" style="padding:28px 8px 40px">${
     design.crosses
       ? framed(design, table("width:100%", card))

@@ -88,7 +88,8 @@ test("draws a grid's frame with marks, a gold gradient, a centered mark alone, a
   expect(html).toContain("border-right:1px solid #262626");
   expect(html).not.toContain(">Acme &amp; Co</td>");
   expect(html).toContain("margin:0 auto");
-  expect(html).toContain("background:linear-gradient(90deg, #000, #c9a24e, #000)");
+  // The gradient over the accent, for clients that drop gradients.
+  expect(html).toContain("background-color:#ffffff;background-image:linear-gradient(90deg, #000, #c9a24e, #000)");
   expect(html).toContain("background-image:linear-gradient(115deg, #7a5a22, #f6e3a8)");
   expect(html).toContain("Upholstery &amp; interiors");
   expect(html).toContain('<a href="https://example.com"');
@@ -119,5 +120,25 @@ test("centers a centered design's button, writes it in capitals, and draws its o
   );
   expect(html).toContain("margin:32px auto 0");
   expect(html).toContain("text-transform:uppercase;");
-  expect(html).toContain("background:#c9a24e;");
+  expect(html).toContain("background-color:#c9a24e;");
+});
+
+test("says its colors are its own in light and dark, inside the body too, and gives a gradient rule its plain color", () => {
+  const html = emailLayout(
+    { language: "en", preview: "P", eyebrow: "E", heading: "H" },
+    {
+      ...design,
+      colors: { ...design.colors, headerRule: "linear-gradient(90deg, #000, #3a3a3a)", headerRuleColor: "#3a3a3a" },
+    },
+    false,
+  );
+  expect(html).toContain('<meta name="color-scheme" content="light dark">');
+  // Clients that drop the head still read the body's own copy.
+  const body = html.slice(html.indexOf("<body"));
+  expect(body).toContain(":root{color-scheme:light dark;supported-color-schemes:light dark}");
+  expect(body).toContain(
+    `@media (prefers-color-scheme:dark){body,.page{background-color:${design.colors.page}!important}}`,
+  );
+  expect(body).toContain("@media (max-width:520px)");
+  expect(html).toContain("background-color:#3a3a3a;background-image:linear-gradient(90deg, #000, #3a3a3a)");
 });

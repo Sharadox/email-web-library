@@ -37,8 +37,13 @@ export interface EmailDesign {
     accent: string;
     /** A CSS gradient over the accent where the reader's device shows one (shiny gold). */
     accentGradient?: string;
-    /** The line under the header, as a CSS background, when it isn't the accent (a hairline fading at its ends). */
+    /** The line under the header, a color or a CSS gradient, when it isn't the accent (a hairline fading at its ends). */
     headerRule?: string;
+    /**
+     * The header line's plain color, under its gradient: what clients that drop gradients (some privacy-minded ones)
+     * show instead; the accent by default.
+     */
+    headerRuleColor?: string;
     /** Behind a quoted text. */
     box: string;
     /** The button's words. */
