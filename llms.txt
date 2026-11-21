@@ -11,3 +11,4 @@
 - /email-layout: emailLayout(content, design, logo) → HTML that works in email clients, light and dark; EmailDesign (name, logo?, wordmark, align, colors, fonts, heading, label, rule, radius, button, signature…), EmailContent (language, preview, eyebrow, heading, paragraphs, rows, quote, button, footer)
 - Root import (all of the above) kept in 0.5 for compatibility, removed in 0.6.
 - License: Sharadox Open Source License 0.1.0
+- Dark mode: every email declares its colors as its own (meta color-scheme + supported-color-schemes, :root color-scheme, a prefers-color-scheme:dark rule with the same page color), its <style> repeated inside <body>; colors.headerRuleColor is the plain color under a gradient headerRule
