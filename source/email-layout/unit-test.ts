@@ -58,7 +58,7 @@ test("shows a list a dot per line, keeps a message's line breaks, and draws line
   const html = emailLayout(content, design, false);
   expect(html).toContain("&bull;&nbsp;Website<br>&bull;&nbsp;Hosting");
   expect(html).toContain('white-space:pre-wrap;color:#000000">Hello\nthere</div>');
-  expect(html.match(/border-top:1px solid #5E5E5E/g)).toHaveLength(3);
+  expect(html.match(/border-top:1px solid #E5E5E5/g)).toHaveLength(3);
   expect(html).not.toContain("border-left");
 });
 
