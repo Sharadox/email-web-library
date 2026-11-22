@@ -7,8 +7,8 @@ import type { EmailContent, EmailDesign, EmailLogos, EmailRow } from "@sharadox/
  * details. Each in a light theme and a dark one.
  */
 export const EMAIL_COLORS = {
-  light: { strong: "#000000", soft: "#5E5E5E", line: "#5E5E5E" },
-  dark: { strong: "#FFFFFF", soft: "#A1A1A1", line: "#5E5E5E" },
+  light: { strong: "#000000", soft: "#5E5E5E", line: "#E5E5E5" },
+  dark: { strong: "#FFFFFF", soft: "#A1A1A1", line: "#1A1A1A" },
 } as const;
 
 /** Geist where the reader has it, the device's own sans otherwise. */
