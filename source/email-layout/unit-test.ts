@@ -1,3 +1,5 @@
+// @vitest-environment happy-dom
+/// <reference lib="dom" />
 import { expect, test } from "vitest";
 import { EMAIL_COLORS, EMAIL_FONT, EMAIL_SPACES, emailLayout } from "@sharadox/email-web-library/email-layout";
 import type { EmailContent, EmailDesign } from "@sharadox/email-web-library/email-layout/type";
@@ -24,78 +26,130 @@ const content: EmailContent = {
   closing: "Best regards,",
 };
 
-test("lays out everything given, escaped, in a centered column 600 pixels wide with no background", () => {
-  const html = emailLayout(content, design, { light: true, dark: true });
-  expect(html).toContain('<html lang="en">');
-  expect(html).toContain(
-    ' width="600" align="center" style="border-collapse:collapse;width:100%;max-width:600px;margin:0 auto"',
+const { light, dark } = EMAIL_COLORS;
+
+/** The email as a document, to check what it shows rather than how its html is spelled. */
+const render = (...given: Parameters<typeof emailLayout>) =>
+  new DOMParser().parseFromString(emailLayout(...given), "text/html");
+
+/** The innermost element whose own text is exactly `text`. */
+const byText = (document: Document, text: string) =>
+  [...document.body.querySelectorAll<HTMLElement>("*")].find((element) =>
+    [...element.childNodes].some((node) => node.nodeType === 3 && node.textContent === text),
+  )!;
+
+/** A detail's label and value, and the cell holding both, by its label. */
+const detail = (document: Document, label: string) => {
+  const labelElement = byText(document, label);
+  return {
+    label: labelElement,
+    value: labelElement.nextElementSibling as HTMLElement,
+    cell: labelElement.parentElement!,
+  };
+};
+
+const color = (element: Element) => (element as HTMLElement).style.color.toUpperCase();
+
+test("lays out everything given, escaped, in a centered column 600 pixels wide with 16 pixels around it", () => {
+  const document = render(content, design, { light: true, dark: true });
+  expect(document.documentElement.lang).toBe("en");
+  const column = document.querySelector<HTMLElement>('table[width="600"]')!;
+  expect(column.getAttribute("align")).toBe("center");
+  expect(column.style.maxWidth).toBe("600px");
+  expect(column.querySelector("td")!.style.padding).toBe("16px");
+  expect(document.querySelector("h1")!.textContent).toBe("Thank you, Ana <Sá>.");
+  expect(document.body.innerHTML).not.toContain("<Sá>");
+  expect(document.body.textContent).toContain("Ana sent a message");
+  const logo = document.querySelector<HTMLImageElement>('img[src="cid:logo"]')!;
+  expect([logo.getAttribute("width"), logo.getAttribute("height"), logo.alt]).toEqual(["30", "30", "Acme & Co"]);
+  expect(byText(document, "Acme & Co").tagName).toBe("TD");
+});
+
+test("has no background, and draws in Geist or the device's own sans", () => {
+  const document = render(content, design, { light: true, dark: true });
+  const backgrounds = [...document.body.querySelectorAll<HTMLElement>("*")].filter(
+    (element) => element.style.backgroundColor,
   );
-  expect(html).toContain('<td style="padding:16px">');
-  expect(html).toContain('<img src="cid:logo" width="30" height="30" alt="Acme &amp; Co"');
-  expect(html).toContain(">Acme &amp; Co</td>");
-  expect(html).toContain("Thank you, Ana &lt;Sá&gt;.");
-  expect(html).not.toContain("<Sá>");
-  expect(html).toContain("Ana sent a message");
-  expect(html).not.toContain("background");
-  expect(html).toContain(`font-family:${EMAIL_FONT}`);
+  expect(backgrounds).toEqual([]);
   expect(EMAIL_FONT.startsWith("Geist,")).toBe(true);
+  for (const text of ["Contact", "Name", "Ana", "Your message has reached us."])
+    expect(byText(document, text).closest<HTMLElement>("[style*='font-family']")!.style.fontFamily).toContain("Geist");
 });
 
 test("draws the heading, values, company's name and site strong, the labels and the rest soft", () => {
-  const html = emailLayout(content, design, false);
-  expect(html).toMatch(/<h1 class="strong" style="[^"]*color:#000000">/);
-  expect(html).toContain('text-transform:uppercase;color:#5E5E5E">Contact</div>');
-  expect(html).toContain('text-transform:uppercase;color:#5E5E5E">Name</div>');
-  expect(html).toMatch(/<p class="soft" style="[^"]*color:#5E5E5E">Your message has reached us\.<\/p>/);
-  expect(html).toContain('<a class="strong" href="mailto:ana@example.com" style="color:#000000;');
-  expect(html).toContain('Best regards,<br><b class="strong" style="color:#000000">Acme &amp; Co</b>.</p>');
-  expect(html).toContain(
-    '<a class="strong" href="https://acme.com" style="color:#000000;text-decoration:underline">acme.com</a> &middot; Lisbon',
-  );
+  const document = render(content, design, false);
+  expect(color(document.querySelector("h1")!)).toBe(light.strong);
+  expect(color(byText(document, "Contact"))).toBe(light.soft);
+  expect(color(detail(document, "Name").label)).toBe(light.soft);
+  expect(color(detail(document, "Name").value)).toBe(light.strong);
+  expect(color(byText(document, "ana@example.com"))).toBe(light.strong);
+  expect(color(byText(document, "Your message has reached us."))).toBe(light.soft);
+  expect(color(byText(document, "Acme & Co"))).toBe(light.strong);
+  const company = document.querySelector("b")!;
+  expect([company.textContent, color(company)]).toEqual(["Acme & Co", light.strong]);
+  expect(color(company.parentElement!)).toBe(light.soft);
+  expect(company.parentElement!.textContent).toBe("Best regards,Acme & Co.");
+  const site = document.querySelector<HTMLAnchorElement>('a[href="https://acme.com"]')!;
+  expect([site.textContent, color(site)]).toEqual(["acme.com", light.strong]);
+  expect(site.parentElement!.textContent).toBe("acme.com · Lisbon");
+  for (const element of document.querySelectorAll(".strong, .soft"))
+    expect([light.strong, light.soft]).toContain(color(element));
 });
 
 test("shows a list a dot per line, keeps a message's line breaks, and draws lines only between details", () => {
-  const html = emailLayout(content, design, false);
-  expect(html).toContain("&bull;&nbsp;Website<br>&bull;&nbsp;Hosting");
-  expect(html).toContain('white-space:pre-wrap;color:#000000">Hello\nthere</div>');
-  expect(html.match(/border-top:1px solid #E5E5E5/g)).toHaveLength(3);
-  expect(html).not.toContain("border-left");
+  const document = render(content, design, false);
+  expect(detail(document, "Needs").value.innerHTML).toBe("•&nbsp;Website<br>•&nbsp;Hosting");
+  const message = detail(document, "Message").value;
+  expect([message.textContent, message.style.whiteSpace]).toEqual(["Hello\nthere", "pre-wrap"]);
+  const cells = ["Name", "Email", "Needs", "Message"].map((label) => detail(document, label).cell);
+  expect(cells[0]!.style.borderTop).toBe("");
+  for (const cell of cells.slice(1)) expect(cell.style.borderTop.toUpperCase()).toBe(`1PX SOLID ${light.line}`);
+  expect(document.body.innerHTML).not.toContain("border-left");
 });
 
 test("uses only the spaces 4, 8, 16 and 32", () => {
-  const html = emailLayout(content, design, { light: true, dark: true });
-  const spaces = new Set([...html.matchAll(/padding(?:-top)?:(\d+)px/g)].map((match) => Number(match[1])));
+  const document = render(content, design, { light: true, dark: true });
+  const spaces = new Set<number>();
+  for (const element of document.body.querySelectorAll<HTMLElement>("*"))
+    for (const side of ["paddingTop", "paddingRight", "paddingBottom", "paddingLeft"] as const) {
+      const value = Number.parseInt(element.style[side] || "0", 10);
+      if (value) spaces.add(value);
+    }
+  expect(spaces.size).toBeGreaterThan(1);
   expect([...spaces].every((space) => (Object.values(EMAIL_SPACES) as number[]).includes(space))).toBe(true);
 });
 
 test("turns white and light gray in a dark theme, where the mail app honors it, Outlook.com included", () => {
-  const html = emailLayout(content, design, { light: true, dark: true });
-  expect(html).toContain('<meta name="color-scheme" content="light dark">');
-  expect(html).toContain(`@media (prefers-color-scheme:dark){.strong{color:${EMAIL_COLORS.dark.strong}!important}`);
-  expect(html).toContain(".soft{color:#A1A1A1!important}");
-  expect(html).toContain("[data-ogsc] .strong{color:#FFFFFF!important}");
-  expect(html).toContain(
-    '<div class="logo-dark" style="display:none;max-height:0;overflow:hidden;mso-hide:all"><img src="cid:logo-dark"',
-  );
-  expect(html).toContain(".logo-light{display:none!important}.logo-dark{display:block!important");
+  const document = render(content, design, { light: true, dark: true });
+  expect(document.querySelector('meta[name="color-scheme"]')!.getAttribute("content")).toBe("light dark");
+  const rules = document.querySelector("style")!.textContent!;
+  expect(rules).toContain(`@media (prefers-color-scheme:dark){.strong{color:${dark.strong}!important}`);
+  expect(rules).toContain(`.soft{color:${dark.soft}!important}`);
+  expect(rules).toContain(`.line{border-color:${dark.line}!important}`);
+  expect(rules).toContain(`[data-ogsc] .strong{color:${dark.strong}!important}`);
+  expect(rules).toContain(".logo-light{display:none!important}.logo-dark{display:block!important");
+  const darkLogo = document.querySelector<HTMLElement>(".logo-dark")!;
+  expect(darkLogo.style.display).toBe("none");
+  expect(darkLogo.querySelector("img")!.getAttribute("src")).toBe("cid:logo-dark");
 });
 
 test("without a logo it writes the name; a logo it doesn't carry isn't drawn; without wordmark it stands alone", () => {
-  const html = emailLayout({ language: "pt", preview: "P", eyebrow: "E", heading: "H" }, { name: "Plain" }, true);
-  expect(html).not.toContain("cid:logo");
-  expect(html).toContain(">Plain</td>");
-  expect(html).not.toContain("<p class");
-  expect(html).not.toContain('class="line"');
-  expect(emailLayout(content, { ...design, wordmark: false }, false)).toContain(">Acme &amp; Co</td>");
-  const alone = emailLayout(content, { ...design, wordmark: false }, true);
-  expect(alone).toContain("cid:logo");
-  expect(alone).not.toContain("cid:logo-dark");
-  expect(alone).not.toContain(">Acme &amp; Co</td>");
+  const plain = render({ language: "pt", preview: "P", eyebrow: "E", heading: "H" }, { name: "Plain" }, true);
+  expect(plain.querySelector("img")).toBeNull();
+  expect(byText(plain, "Plain").tagName).toBe("TD");
+  expect(plain.querySelector("p")).toBeNull();
+  expect(plain.querySelector(".line")).toBeNull();
+  expect(byText(render(content, { ...design, wordmark: false }, false), "Acme & Co")).toBeTruthy();
+  const alone = render(content, { ...design, wordmark: false }, true);
+  expect(alone.querySelector('img[src="cid:logo"]')).not.toBeNull();
+  expect(alone.querySelector('img[src="cid:logo-dark"]')).toBeNull();
+  // The name is only in the sign-off then, not beside the logo.
+  expect(byText(alone, "Acme & Co").tagName).toBe("B");
 });
 
 test("signs off right after the heading when there are no details, and leaves out what isn't given", () => {
-  const html = emailLayout({ ...content, rows: [], paragraphs: [] }, design, false);
-  expect(html).toContain('<td style="padding:32px 0 0"><p class="soft"');
-  expect(emailLayout({ ...content, closing: undefined }, design, false)).not.toContain("Best regards");
-  expect(emailLayout(content, { ...design, signature: [] }, false)).not.toContain("acme.com");
+  const document = render({ ...content, rows: [], paragraphs: [] }, design, false);
+  expect(byText(document, "Best regards,").closest("td")!.style.paddingTop).toBe("32px");
+  expect(render({ ...content, closing: undefined }, design, false).body.textContent).not.toContain("Best regards");
+  expect(render(content, { ...design, signature: [] }, false).body.textContent).not.toContain("acme.com");
 });
