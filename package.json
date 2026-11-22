@@ -1,6 +1,6 @@
 {
   "name": "@sharadox/email-web-library",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Send email from web applications through any SMTP server, with message checks and clear errors.",
   "license": "SEE LICENSE IN LICENCA.md",
   "author": "Sharadox <contact@sharadox.com>",
@@ -41,7 +41,8 @@
     "LICENCA.md",
     "LICENSE.md",
     "NOTICE.md",
-    "llms.txt"
+    "llms.txt",
+    "CHANGELOG.md"
   ],
   "sideEffects": false,
   "engines": {
@@ -72,16 +73,16 @@
     "*.{json,md,yml,yaml}": "prettier --write"
   },
   "dependencies": {
-    "@sharadox/web-library": "^0.8.0",
+    "@sharadox/web-library": "^0.10.0",
     "nodemailer": "^10.1.4"
   },
   "devDependencies": {
     "@sharadox/es-lint-configuration-web-library": "^0.1.2",
-    "@sharadox/library-build-web-library": "^0.1.2",
+    "@sharadox/library-build-web-library": "^0.2.0",
     "@sharadox/prettier-configuration-web-library": "^0.1.1",
-    "@sharadox/turborepo-configuration-web-library": "^0.1.1",
-    "@sharadox/type-script-configuration-web-library": "^0.2.1",
-    "@sharadox/vitest-configuration-web-library": "^0.1.4",
+    "@sharadox/turborepo-configuration-web-library": "^0.1.3",
+    "@sharadox/type-script-configuration-web-library": "^0.2.2",
+    "@sharadox/vitest-configuration-web-library": "^0.2.0",
     "@types/node": "^24.19.2",
     "@types/nodemailer": "^8.0.2",
     "@types/smtp-server": "^3.5.13",

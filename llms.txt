@@ -8,6 +8,6 @@
 - /inline-image: inlineImage(id, { filename, contentType, content (base64) }) → InlineImage with the bytes decoded (a library's logo kept as base64 text)
 - /email-address: checkEmailAddress(value, field) → the address, or EmailError("invalid-message"); EmailAddress = string | { name, address }
 - /email-error: EmailError(code: "configuration" | "invalid-message" | "delivery", message, options?)
-- /email-layout: emailLayout(content, design, logo) → HTML that works in email clients, light and dark; EmailDesign (name, logo?, wordmark, align, colors, fonts, heading, label, rule, radius, button, signature…), EmailContent (language, preview, eyebrow, heading, paragraphs, rows, quote, button, footer)
+- /email-layout: emailLayout(content, design, logos: { light, dark } | boolean) → HTML the same in every mail app: centered 600px column, 16px around, no background; strong #000000 (logo, heading, values, company name, site) and soft #5E5E5E (labels, other text), dark theme #FFFFFF/#A1A1A1 via @media prefers-color-scheme and [data-ogsc] (the only <style>), white logo "logo-dark" shown there; spaces 4/8/16/32 (EMAIL_SPACES); Geist else system sans (EMAIL_FONT); EmailDesign { name, logo? {width,height}, wordmark?, signature? }; EmailContent { language, preview, eyebrow, heading, paragraphs?, rows? [{ label, value: string | string[] (dotted list), href?, keepLines? }], closing? ("Best regards," then the company name in bold) }
 - Root import (all of the above) kept in 0.5 for compatibility, removed in 0.6.
 - License: Sharadox Open Source License 0.1.0
