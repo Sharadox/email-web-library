@@ -1,47 +1,61 @@
 import { escapeHtml } from "@sharadox/web-library/html/escape";
-import type { EmailContent, EmailDesign, EmailLogos } from "@sharadox/email-web-library/email-layout/type";
+import type { EmailContent, EmailDesign, EmailLogos, EmailRow } from "@sharadox/email-web-library/email-layout/type";
 
 /**
- * The colors every email is drawn in: no background (the mail app's own shows), black text on a light theme and white
- * on a dark one, with grays between them for paragraphs, labels and lines.
+ * The colors every email is drawn in, with no background (the mail app's own shows): `strong` for the logo, the
+ * heading, the values, the company's name and its site; `soft` for labels and the rest of the text; `line` between
+ * details. Each in a light theme and a dark one.
  */
 export const EMAIL_COLORS = {
-  light: { text: "#000000", muted: "#3f3f46", quiet: "#71717a", line: "#e4e4e7" },
-  dark: { text: "#ffffff", muted: "#d4d4d8", quiet: "#a1a1aa", line: "#3f3f46" },
+  light: { strong: "#000000", soft: "#5E5E5E", line: "#E4E4E7" },
+  dark: { strong: "#FFFFFF", soft: "#A1A1A1", line: "#3F3F46" },
 } as const;
 
 /** Geist where the reader has it, the device's own sans otherwise. */
 export const EMAIL_FONT = "Geist, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
 
-const { light, dark } = EMAIL_COLORS;
+/** The only spaces between things, in pixels: 4, 8, 16 (the usual one) and 32. */
+export const EMAIL_SPACES = { tiny: 4, small: 8, normal: 16, large: 32 } as const;
 
-/** The dark theme's rules, one selector per element role. */
-const DARK = `.text{color:${dark.text}!important}.muted{color:${dark.muted}!important}.quiet{color:${dark.quiet}!important}.line{border-color:${dark.line}!important}.button{background-color:${dark.text}!important}.button-text{color:#000000!important}.logo-light{display:none!important}.logo-dark{display:block!important;max-height:none!important;overflow:visible!important}`;
+const { light, dark } = EMAIL_COLORS;
+const { tiny, small, normal, large } = EMAIL_SPACES;
+
+/** The dark theme's rules, one class per role. */
+const DARK = `.strong{color:${dark.strong}!important}.soft{color:${dark.soft}!important}.line{border-color:${dark.line}!important}.logo-light{display:none!important}.logo-dark{display:block!important;max-height:none!important;overflow:visible!important}`;
 
 /**
- * The dark theme, for mail apps that honor it (Apple Mail, Outlook on phones and Macs, and others): white text, light
- * grays, dark lines, a white button with black words, and the white logo instead of the black one. Said again for
- * Outlook.com, which marks its dark theme with a `data-ogsc` attribute. Mail apps that ignore it darken the email
- * their own way, which the black logo's white outline survives.
+ * The dark theme, for mail apps that honor it (Apple Mail, Outlook on phones and Macs, and others): white and light
+ * gray text, dark lines, and the white logo instead of the black one. Said again for Outlook.com, which marks its dark
+ * theme with a `data-ogsc` attribute. Mail apps that ignore it darken the email their own way, which the black
+ * logo's white outline survives.
  */
 const DARK_RULES = `@media (prefers-color-scheme:dark){${DARK}}${DARK.replace(/(^|\})\./g, "$1[data-ogsc] .")}`;
-
-/** A table that's only there for layout, as email clients need. */
-const table = (style: string, rows: string, width?: number) =>
-  `<table role="presentation" cellpadding="0" cellspacing="0" border="0"${width ? ` width="${width}"` : ""} style="border-collapse:collapse;${style}">${rows}</table>`;
 
 /** The font, on everything. */
 const FONT = `font-family:${EMAIL_FONT}`;
 
-/** Small spaced capitals in one of the theme's colors: eyebrows and labels. */
-const capitals = (color: "text" | "quiet") =>
-  `class="${color}" style="${FONT};font-size:12px;font-weight:600;line-height:1.5;letter-spacing:0.08em;text-transform:uppercase;color:${light[color]}"`;
+/** A table that's only there for layout, as email clients need. */
+const table = (style: string, rows: string, attributes = "") =>
+  `<table role="presentation" cellpadding="0" cellspacing="0" border="0"${attributes} style="border-collapse:collapse;${style}">${rows}</table>`;
 
-/** A value, as a link when it has one. */
-const value = ({ value: text, href }: { value: string; href?: string | undefined }, color: "text" | "quiet") =>
-  href
-    ? `<a class="${color}" href="${escapeHtml(href)}" style="color:${light[color]};text-decoration:underline">${escapeHtml(text)}</a>`
-    : escapeHtml(text);
+/** Text in one of the two colors. */
+const colored = (role: "strong" | "soft", style: string) =>
+  `class="${role}" style="${FONT};${style};color:${light[role]}"`;
+
+/** Small spaced capitals: the eyebrow and the labels. */
+const CAPITALS = colored(
+  "soft",
+  "font-size:12px;font-weight:600;line-height:16px;letter-spacing:0.08em;text-transform:uppercase",
+);
+
+/** A detail's value: text, a link, or a list of items, one per line after a dot. */
+function value(row: EmailRow) {
+  if (typeof row.value !== "string") return row.value.map((item) => `&bull;&nbsp;${escapeHtml(item)}`).join("<br>");
+  const text = escapeHtml(row.value);
+  return row.href
+    ? `<a class="strong" href="${escapeHtml(row.href)}" style="color:${light.strong};text-decoration:underline">${text}</a>`
+    : text;
+}
 
 /** The logo: the black one, and the white one for dark themes, hidden unless a dark theme shows it. */
 function mark(design: EmailDesign, logos: EmailLogos) {
@@ -52,96 +66,83 @@ function mark(design: EmailDesign, logos: EmailLogos) {
   const darkLogo = logos.dark
     ? `<div class="logo-dark" style="display:none;max-height:0;overflow:hidden;mso-hide:all">${image("logo-dark")}</div>`
     : "";
-  return `<td style="vertical-align:middle;padding:0${design.wordmark ? " 10px 0 0" : ""}"><div class="logo-light">${image("logo")}</div>${darkLogo}</td>`;
+  return `<td style="vertical-align:middle;padding:0${design.wordmark ? ` ${small}px 0 0` : ""}"><div class="logo-light">${image("logo")}</div>${darkLogo}</td>`;
 }
 
-/** The logo at the top left, and the company's name beside it with `wordmark` (or alone, without a logo). */
+/** The logo at the top, and the company's name beside it with `wordmark` (or alone, without a logo). */
 function header(design: EmailDesign, logos: EmailLogos) {
   const logo = mark(design, logos);
   const name =
     design.wordmark || !logo
-      ? `<td class="text" style="vertical-align:middle;${FONT};font-size:19px;font-weight:700;letter-spacing:-0.01em;color:${light.text}">${escapeHtml(design.name)}</td>`
+      ? `<td ${colored("strong", "vertical-align:middle;font-size:19px;font-weight:700;letter-spacing:-0.01em")}>${escapeHtml(design.name)}</td>`
       : "";
   return table("", `<tr>${logo}${name}</tr>`);
 }
 
-/** The details, each label over its value, lines between them; a longer text keeps its line breaks. */
-function details(entries: readonly { label: string; inside: string; keepLines?: boolean }[]) {
-  const line = `class="line" style="padding:14px 0;border-top:1px solid ${light.line};${FONT};word-break:break-word"`;
+/** The details, each label over its value, a line between each and the next. */
+function details(rows: readonly EmailRow[]) {
   return table(
     "width:100%",
-    entries
+    rows
       .map(
-        (entry) =>
-          `<tr><td ${line}><div ${capitals("quiet")}>${escapeHtml(entry.label)}</div><div class="text" style="padding-top:4px;font-size:16px;line-height:1.5;color:${light.text}${entry.keepLines ? ";white-space:pre-wrap" : ""}">${entry.inside}</div></td></tr>`,
+        (row, index) =>
+          `<tr><td class="line" style="padding:${normal}px 0;${index ? `border-top:1px solid ${light.line};` : ""}word-break:break-word"><div ${CAPITALS}>${escapeHtml(row.label)}</div><div ${colored("strong", `padding-top:${tiny}px;font-size:16px;line-height:24px${row.keepLines ? ";white-space:pre-wrap" : ""}`)}>${value(row)}</div></td></tr>`,
       )
-      .join("") +
-      `<tr><td class="line" style="border-top:1px solid ${light.line};font-size:0;line-height:0">&nbsp;</td></tr>`,
+      .join(""),
   );
 }
 
 /**
- * An email that looks the same in every inbox: the logo at the top left, an eyebrow and a heading, paragraphs, the
- * details (each label over its value, a longer text last, all alike), one button, small print and the company's
- * signature. No background: the mail app's own shows, with the text, logo and button in the theme's foreground
- * color (black, or white in dark mode where the app honors it). Geist where the reader has it, the device's own sans
- * otherwise. Every style is inline but the dark theme's; everything given is escaped. `logos` says which logo images
- * the email carries (`true`: the black one only).
+ * An email that looks the same in every inbox, in a centered column 600 pixels wide: the logo, an eyebrow and a
+ * heading, paragraphs, the details (each label over its value, lines between them), a sign-off with the company's
+ * name, and its site. No background: the mail app's own shows; the text is black and gray, white and light gray in
+ * dark themes where the mail app honors them (the only styles not inline). Spaces are 4, 8, 16 or 32 pixels. Geist
+ * where the reader has it, the device's own sans otherwise. Everything given is escaped. `logos` says which logo
+ * images the email carries (`true`: the black one only).
  *
  * @example
- * emailLayout({ language: "en", preview: "Ana sent a message", eyebrow: "Contact", heading: "Ana",
- *   rows: [{ label: "Email", value: "ana@example.com" }] }, { name: "Acme" }, false);
+ * emailLayout({ language: "en", preview: "Ana sent a message", eyebrow: "Contact", heading: "Thank you, Ana.",
+ *   rows: [{ label: "Email", value: "ana@example.com" }], closing: "Best regards," }, { name: "Acme" }, false);
  */
 export function emailLayout(content: EmailContent, design: EmailDesign, logos: EmailLogos | boolean): string {
   const carried = typeof logos === "boolean" ? { light: logos, dark: false } : logos;
-  const { language, preview, eyebrow, heading, paragraphs = [], rows = [], quote, button, footer = [] } = content;
-  const block = (style: string, inside: string) => `<tr><td style="${style}">${inside}</td></tr>`;
-  const entries = [
-    ...rows.map((row) => ({ label: row.label, inside: value(row, "text") })),
-    ...(quote ? [{ label: quote.label, inside: escapeHtml(quote.text), keepLines: true }] : []),
-  ];
+  const { language, preview, eyebrow, heading, paragraphs = [], rows = [], closing } = content;
+  const block = (top: number, inside: string) => `<tr><td style="padding:${top}px 0 0">${inside}</td></tr>`;
   const parts = [
-    block("padding:0 0 36px", header(design, carried)),
-    block("padding:0 0 10px", `<div ${capitals("text")}>${escapeHtml(eyebrow)}</div>`),
+    `<tr><td style="padding:0">${header(design, carried)}</td></tr>`,
+    block(large, `<div ${CAPITALS}>${escapeHtml(eyebrow)}</div>`),
     block(
-      "padding:0",
-      `<h1 class="text" style="margin:0;${FONT};font-size:30px;font-weight:700;line-height:1.2;letter-spacing:-0.01em;color:${light.text}">${escapeHtml(heading)}</h1>`,
+      small,
+      `<h1 ${colored("strong", "margin:0;font-size:28px;font-weight:700;line-height:32px;letter-spacing:-0.01em")}>${escapeHtml(heading)}</h1>`,
     ),
-    ...paragraphs.map((paragraph) =>
+    ...paragraphs.map((paragraph, index) =>
       block(
-        "padding:16px 0 0",
-        `<p class="muted" style="margin:0;${FONT};font-size:16px;line-height:1.6;color:${light.muted}">${escapeHtml(paragraph)}</p>`,
+        index ? small : normal,
+        `<p ${colored("soft", "margin:0;font-size:16px;line-height:24px")}>${escapeHtml(paragraph)}</p>`,
       ),
     ),
-    entries.length ? block("padding:28px 0 0", details(entries)) : "",
-    button
+    rows.length ? block(large - normal, details(rows)) : "",
+    closing
       ? block(
-          "padding:32px 0 0",
-          table(
-            "",
-            `<tr><td class="button" style="background-color:${light.text};border-radius:8px"><a class="button-text" href="${escapeHtml(button.href)}" style="display:inline-block;padding:14px 26px;${FONT};font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px">${escapeHtml(button.label)}</a></td></tr>`,
-          ),
-        )
-      : "",
-    footer.length
-      ? block(
-          "padding:36px 0 0",
-          `<div class="line quiet" style="padding-top:20px;border-top:1px solid ${light.line};${FONT};font-size:13px;line-height:1.6;color:${light.quiet}">${footer
-            .map((row) => `${escapeHtml(row.label)}: ${value(row, "quiet")}`)
-            .join("<br>")}</div>`,
+          rows.length ? large - normal : large,
+          `<p ${colored("soft", "margin:0;font-size:16px;line-height:24px")}>${escapeHtml(closing)}<br><b class="strong" style="color:${light.strong}">${escapeHtml(design.name)}</b>.</p>`,
         )
       : "",
     design.signature?.length
       ? block(
-          `padding:${footer.length ? 16 : 36}px 0 0`,
-          `<div class="quiet" style="${FONT};font-size:13px;line-height:1.6;color:${light.quiet}">${design.signature
-            .map((signed) => value({ value: signed.text, href: signed.href }, "quiet"))
+          large,
+          `<div ${colored("strong", "font-size:14px;line-height:20px")}>${design.signature
+            .map((signed) =>
+              signed.href
+                ? `<a class="strong" href="${escapeHtml(signed.href)}" style="color:${light.strong};text-decoration:underline">${escapeHtml(signed.text)}</a>`
+                : escapeHtml(signed.text),
+            )
             .join(" &middot; ")}</div>`,
         )
       : "",
   ];
   return `<!doctype html><html lang="${escapeHtml(language)}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light dark"><meta name="supported-color-schemes" content="light dark"><title>${escapeHtml(heading)}</title><style>:root{color-scheme:light dark;supported-color-schemes:light dark}${DARK_RULES}</style></head><body style="margin:0;padding:0">
 <div style="display:none;max-height:0;overflow:hidden;opacity:0">${escapeHtml(preview)}</div>
-${table("width:100%", `<tr><td style="padding:32px 24px 40px">${table("width:100%;max-width:560px", parts.join("\n"), 560)}</td></tr>`)}
+${table("width:100%", `<tr><td align="center" style="padding:0">${table(`width:100%;max-width:600px;margin:0 auto`, `<tr><td style="padding:${normal}px">${table("width:100%", parts.join("\n"))}</td></tr>`, ' width="600" align="center"')}</td></tr>`)}
 </body></html>`;
 }

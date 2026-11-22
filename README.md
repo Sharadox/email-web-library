@@ -65,36 +65,39 @@ await sender.send({
 
 ### In the company's layout
 
-`emailLayout(content, design, logos)` writes the html of an email that looks the same in every mail app: no background (the mail app's own shows), and the text, the logo and the button in the foreground color of the reader's theme: black, or white in dark mode. The dark theme is a few rules for the mail apps that honor it (Apple Mail, Outlook on phones and Macs, Outlook.com and others); the others darken the email their own way. Everything else is inline. The font is Geist where the reader has it, the device's own sans otherwise (no web fonts, which would tell a font service the email was opened). A company brings only its logo and name. Details stack each label over its value, a longer text (the visitor's message) last, all alike. Everything given is escaped.
+`emailLayout(content, design, logos)` writes the html of an email that looks the same in every mail app: a centered column 600 pixels wide with 16 pixels around it, and no background (the mail app's own shows). The logo, the heading, the values, the company's name and its site are black (`#000000`), the labels and the rest gray (`#5E5E5E`); in a dark theme, where the mail app honors it (Apple Mail, Outlook on phones and Macs, Outlook.com and others), they turn white (`#FFFFFF`) and light gray (`#A1A1A1`) and the white logo shows instead. Mail apps that ignore it darken the email their own way. Spaces are 4, 8, 16 or 32 pixels. The font is Geist where the reader has it, the device's own sans otherwise (no web fonts, which would tell a font service the email was opened). Everything given is escaped.
 
 ```ts
 import { emailLayout } from "@sharadox/email-web-library/email-layout";
 import type { EmailDesign } from "@sharadox/email-web-library/email-layout/type";
 
 const design: EmailDesign = {
-  name: "Sharadox",
+  name: "Sharadox", // beside the logo with wordmark, and in the sign-off
   logo: { width: 30, height: 30 }, // shown size of the inline images "logo" (black) and "logo-dark" (white)
-  wordmark: true, // the name beside the logo
-  signature: [{ text: "sharadox.com", href: "https://sharadox.com" }],
+  wordmark: true,
+  signature: [{ text: "sharadox.com", href: "https://sharadox.com" }], // at the very end
 };
 
 const html = emailLayout(
   {
     language: "en",
-    preview: "Ana sent a message",
+    preview: "Thank you, Ana.",
     eyebrow: "Contact",
-    heading: "Ana (Villa Mar)",
-    rows: [{ label: "Email", value: "ana@example.com", href: "mailto:ana@example.com" }],
-    quote: { label: "Message", text: "Hello!" },
-    button: { label: "Reply to Ana", href: "mailto:ana@example.com" },
-    footer: [{ label: "Sent", value: "2026-11-21 14:29 UTC" }],
+    heading: "Thank you, Ana.",
+    paragraphs: ["Your message has reached us…"],
+    rows: [
+      { label: "Email", value: "ana@example.com", href: "mailto:ana@example.com" },
+      { label: "Needs", value: ["Website", "Hosting"] }, // a list: one item per line after a dot
+      { label: "Message", value: "Hello!\nSee you.", keepLines: true },
+    ],
+    closing: "Best regards,", // then the company's name in bold
   },
   design,
   { light: true, dark: true }, // the logos the email carries: "logo" and "logo-dark" (true: "logo" only)
 );
 ```
 
-The black logo should carry a thin white outline: it stays visible where a mail app darkens the email itself. `EMAIL_COLORS` holds the light and dark palettes and `EMAIL_FONT` the font stack.
+The black logo should carry a thin white outline: it stays visible where a mail app darkens the email itself. `EMAIL_COLORS` holds both palettes, `EMAIL_SPACES` the spaces and `EMAIL_FONT` the font stack.
 
 `sender.verify()` logs in without sending, handy for a health check. `checkEmailMessage` and `checkEmailAddress` are exported for validating input before you get as far as sending.
 

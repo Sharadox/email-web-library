@@ -23,5 +23,5 @@ export type {
   EmailServerConfiguration,
   EmailServerSecurity,
 } from "@sharadox/email-web-library/email-server-configuration/type";
-export { EMAIL_COLORS, EMAIL_FONT, emailLayout } from "@sharadox/email-web-library/email-layout";
+export { EMAIL_COLORS, EMAIL_FONT, EMAIL_SPACES, emailLayout } from "@sharadox/email-web-library/email-layout";
 export type { EmailContent, EmailDesign, EmailLogos, EmailRow } from "@sharadox/email-web-library/email-layout/type";
