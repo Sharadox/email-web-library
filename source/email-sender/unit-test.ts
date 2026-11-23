@@ -122,4 +122,14 @@ describe("createEmailSender", () => {
     });
     await expect(unreachable.send(message)).rejects.toMatchObject({ code: "delivery" });
   });
+
+  it("sends through Amazon SES when given an Amazon SES configuration", async () => {
+    const credentials = async () => {
+      throw new Error("no identity here");
+    };
+    const amazon = createEmailSender({ kind: "amazon-ses", region: "eu-west-1", credentials });
+    await expect(amazon.verify()).rejects.toMatchObject({
+      message: "getting Amazon SES (eu-west-1) credentials failed: no identity here",
+    });
+  });
 });
