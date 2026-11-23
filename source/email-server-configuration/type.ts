@@ -1,3 +1,5 @@
+import type { AmazonSesConfiguration } from "@sharadox/email-web-library/amazon-ses-sender/type";
+
 /**
  * How the connection is protected:
  * - `starttls`: connect in plain text, then upgrade with STARTTLS, which is required (port 587, the default).
@@ -7,7 +9,7 @@
 export type EmailServerSecurity = "starttls" | "tls" | "none";
 
 /** Where and how to log in to the SMTP server that sends the email. */
-export interface EmailServerConfiguration {
+export interface SmtpServerConfiguration {
   host: string;
   port: number;
   username: string;
@@ -17,3 +19,6 @@ export interface EmailServerConfiguration {
   /** Milliseconds to wait for the server before failing with `delivery`. Defaults to 10 000. */
   timeout?: number;
 }
+
+/** The server that sends the email: an SMTP server, or Amazon SES with short-lived credentials. */
+export type EmailServerConfiguration = SmtpServerConfiguration | AmazonSesConfiguration;
