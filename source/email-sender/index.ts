@@ -1,10 +1,26 @@
 import { createTransport } from "nodemailer";
+import { createAmazonSesSender } from "@sharadox/email-web-library/amazon-ses-sender";
 import { EmailError } from "@sharadox/email-web-library/email-error";
 import { checkEmailMessage } from "@sharadox/email-web-library/email-message";
-import type { EmailServerConfiguration } from "@sharadox/email-web-library/email-server-configuration/type";
+import type {
+  EmailServerConfiguration,
+  SmtpServerConfiguration,
+} from "@sharadox/email-web-library/email-server-configuration/type";
 import type { EmailReceipt, EmailSender } from "@sharadox/email-web-library/email-sender/type";
 
 const addressText = (entry: string | { address: string }) => (typeof entry === "string" ? entry : entry.address);
+
+/**
+ * Creates a sender for one email server: an SMTP server, or Amazon SES with short-lived credentials (an
+ * `amazon-ses` configuration, sent by `createAmazonSesSender`).
+ *
+ * @example
+ * const sender = createEmailSender(readEmailServerConfiguration());
+ * await sender.send({ from: { name: "Example", address: "contact@web.example.com" }, to: "contact@example.com", subject: "Hi", text: "Hello" });
+ */
+export function createEmailSender(configuration: EmailServerConfiguration): EmailSender {
+  return "kind" in configuration ? createAmazonSesSender(configuration) : createSmtpSender(configuration);
+}
 
 /**
  * Creates a sender for one SMTP server. Each `send` opens its own short connection, which suits serverless
@@ -13,7 +29,7 @@ const addressText = (entry: string | { address: string }) => (typeof entry === "
  * The SMTP protocol work (STARTTLS, login, MIME, encoding of non-English text) is done by Nodemailer; this library
  * adds the configuration, the message checks and one error type.
  */
-export function createEmailSender(configuration: EmailServerConfiguration): EmailSender {
+function createSmtpSender(configuration: SmtpServerConfiguration): EmailSender {
   const security = configuration.security ?? (configuration.port === 465 ? "tls" : "starttls");
   const timeout = configuration.timeout ?? 10_000;
   const transport = createTransport({

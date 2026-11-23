@@ -1,6 +1,6 @@
 # @sharadox/email-web-library
 
-Send email from web applications — contact forms, notifications, receipts — through **any SMTP server**: your existing mailbox provider (Proton, Google Workspace, Microsoft 365, Fastmail…) or a sending service (Amazon SES, Postmark, Resend…). No provider SDK, no cloud account; switching provider is a change of four environment variables.
+Send email from web applications — contact forms, notifications, receipts — through **any SMTP server**: your existing mailbox provider (Proton, Google Workspace, Microsoft 365, Fastmail…) or a sending service (Amazon SES, Postmark, Resend…). Switching provider is a change of four environment variables. On Vercel it can also send through **Amazon SES without any stored password**: the deployment takes an AWS role with its own identity (Vercel OIDC).
 
 - Checks every message before it leaves: valid addresses, a one-line subject, a body — so form input can't inject extra headers or recipients.
 - One error type, `EmailError`, whose `code` says whose problem it is: `configuration`, `invalid-message` or `delivery`.
@@ -16,7 +16,7 @@ pnpm add @sharadox/email-web-library
 ## Use
 
 Import each part from its own path, like every Sharadox library (`@sharadox/email-web-library/email-sender`,
-`…/email-layout`, `…/email-server-configuration`, `…/email-message`, `…/email-address`, `…/email-error`, `…/inline-image`, which turns a base64 image such as a logo into one to send). The root
+`…/amazon-ses-sender`, `…/email-layout`, `…/email-server-configuration`, `…/email-message`, `…/email-address`, `…/email-error`, `…/inline-image`, which turns a base64 image such as a logo into one to send). The root
 import (`@sharadox/email-web-library`) still works in 0.5 and goes away in 0.6.
 
 Set the server in the environment:
@@ -28,6 +28,26 @@ Set the server in the environment:
 | `EMAIL_SERVER_USERNAME` | `website@example.com`     |                                                                                                 |
 | `EMAIL_SERVER_PASSWORD` | an SMTP token or password | Keep it in your host's secret store, never in the repository                                    |
 | `EMAIL_SERVER_SECURITY` | `starttls`                | Optional: `starttls` (default), `tls` (default on port 465) or `none` (local test servers only) |
+
+### Amazon SES without a password (Vercel OIDC)
+
+Set these two instead, and the SMTP variables are ignored:
+
+| Variable                         | Example                                        | Notes                                                   |
+| -------------------------------- | ---------------------------------------------- | ------------------------------------------------------- |
+| `EMAIL_SERVER_AMAZON_SES_ROLE`   | `arn:aws:iam::123456789012:role/email-sending` | The role the deployment takes; not a secret             |
+| `EMAIL_SERVER_AMAZON_SES_REGION` | `eu-west-1`                                    | The region the sending address or domain is verified in |
+
+The Vercel project needs OIDC on (Settings → Security), and AWS an identity provider for `oidc.vercel.com/<team>` (audience `https://vercel.com/<team>`) that the role trusts, with a trust condition on the project's `sub` (`owner:<team>:project:<project>:environment:production`) and a policy allowing only `ses:SendRawEmail` and `ses:SendEmail` from the sending address. Credentials last an hour and are renewed by themselves; there is nothing to rotate. Elsewhere, pass any AWS credential provider yourself:
+
+```ts
+import { createAmazonSesSender } from "@sharadox/email-web-library/amazon-ses-sender";
+import { fromEnv } from "@aws-sdk/credential-providers";
+
+const sender = createAmazonSesSender({ kind: "amazon-ses", region: "eu-west-1", credentials: fromEnv() });
+```
+
+Amazon SES takes every recipient or refuses the message, so `rejected` is always empty. `verify()` gets the credentials (proving the role) without sending anything.
 
 ```ts
 "use server";
