@@ -74,7 +74,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-sesv2": "^3.1175.0",
-    "@sharadox/web-library": "^0.10.0",
+    "@sharadox/web-library": "^0.11.0",
     "@vercel/oidc-aws-credentials-provider": "^3.3.21",
     "nodemailer": "^10.1.4"
   },

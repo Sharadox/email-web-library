@@ -12,8 +12,8 @@ importers:
         specifier: ^3.1175.0
         version: 3.1175.0
       '@sharadox/web-library':
-        specifier: ^0.10.0
-        version: 0.10.0
+        specifier: ^0.11.0
+        version: 0.11.0
       '@vercel/oidc-aws-credentials-provider':
         specifier: ^3.3.21
         version: 3.3.21
@@ -525,8 +525,8 @@ packages:
       '@vitest/coverage-v8': '>=5'
       vitest: '>=5'
 
-  '@sharadox/web-library@0.10.0':
-    resolution: {integrity: sha512-AJ73a6ULYqAOwUVpaYOPQbvwObCUD0O9NRzP5ASKj7jiGbcs+H7iDZ6bHYdlaxCSo1NTWhne+0hyAvg8JfXMZg==}
+  '@sharadox/web-library@0.11.0':
+    resolution: {integrity: sha512-ELDop1Y1M2se8oJb5qPe8OhLkW8tvlIj5Ik8rYQblUI4bSjoOybkAi0TV2vh4ifVBmr5v+sAIX7zT/Cep9FC1g==}
     engines: {node: '>=26'}
 
   '@shikijs/engine-oniguruma@3.23.0':
@@ -2087,7 +2087,7 @@ snapshots:
       - oxc-transform-react
       - vite
 
-  '@sharadox/web-library@0.10.0': {}
+  '@sharadox/web-library@0.11.0': {}
 
   '@shikijs/engine-oniguruma@3.23.0':
     dependencies:
