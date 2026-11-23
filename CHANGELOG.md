@@ -2,6 +2,10 @@
 
 What changed in each version of `@sharadox/email-web-library`, newest first.
 
+## 0.7.1
+
+Workflows from git-hub-action-library v0.2.2: npm Trusted Publishing only
+
 ## 0.7.0
 
 Amazon SES without a password: `EMAIL_SERVER_AMAZON_SES_ROLE` and `EMAIL_SERVER_AMAZON_SES_REGION` send through the Amazon SES API as an AWS role the Vercel deployment takes with its own identity (OIDC), so no SMTP password is stored. New `createAmazonSesSender` (any AWS credential provider) and types `AmazonSesConfiguration`, `AmazonCredentials`, `SmtpServerConfiguration`; `EmailServerConfiguration` is now either kind. SMTP works as before.
