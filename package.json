@@ -1,6 +1,6 @@
 {
   "name": "@sharadox/email-web-library",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Send email from web applications through any SMTP server, with message checks and clear errors.",
   "license": "SEE LICENSE IN LICENCA.md",
   "author": "Sharadox <contact@sharadox.com>",
@@ -74,17 +74,17 @@
   },
   "dependencies": {
     "@aws-sdk/client-sesv2": "^3.1175.0",
-    "@sharadox/web-library": "^0.11.0",
+    "@sharadox/web-library": "^0.11.1",
     "@vercel/oidc-aws-credentials-provider": "^3.3.21",
     "nodemailer": "^10.6.1"
   },
   "devDependencies": {
-    "@sharadox/es-lint-configuration-web-library": "^0.1.2",
-    "@sharadox/library-build-web-library": "^0.2.0",
-    "@sharadox/prettier-configuration-web-library": "^0.1.1",
-    "@sharadox/turborepo-configuration-web-library": "^0.1.3",
-    "@sharadox/type-script-configuration-web-library": "^0.2.2",
-    "@sharadox/vitest-configuration-web-library": "^0.2.0",
+    "@sharadox/es-lint-configuration-web-library": "^0.1.3",
+    "@sharadox/library-build-web-library": "^0.2.1",
+    "@sharadox/prettier-configuration-web-library": "^0.1.2",
+    "@sharadox/turborepo-configuration-web-library": "^0.1.4",
+    "@sharadox/type-script-configuration-web-library": "^0.2.3",
+    "@sharadox/vitest-configuration-web-library": "^0.2.1",
     "@types/node": "^26.6.6",
     "@types/nodemailer": "^8.0.2",
     "@types/smtp-server": "^3.5.13",
