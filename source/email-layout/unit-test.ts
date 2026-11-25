@@ -153,3 +153,29 @@ test("signs off right after the heading when there are no details, and leaves ou
   expect(render({ ...content, closing: undefined }, design, false).body.textContent).not.toContain("Best regards");
   expect(render(content, { ...design, signature: [] }, false).body.textContent).not.toContain("acme.com");
 });
+
+test("shows a one-time code as one box per character, each outlined in the line color, under its label", () => {
+  const document = render({ ...content, rows: [], code: { label: "Code", value: "123456" } }, design, {
+    light: false,
+    dark: false,
+  });
+  const boxes = [...document.querySelectorAll<HTMLElement>("td.code-box")];
+  expect(boxes.map(({ textContent }) => textContent)).toEqual(["1", "2", "3", "4", "5", "6"]);
+  for (const box of boxes) {
+    expect(box.classList.contains("line")).toBe(true);
+    expect(box.style.border.toUpperCase()).toContain(light.line);
+    expect(color(box)).toBe(light.strong);
+    expect(box.style.fontFamily).toContain("monospace");
+  }
+  const label = byText(document, "Code");
+  expect(label.compareDocumentPosition(boxes[0]!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  expect(document.body.textContent).not.toContain("123 456");
+  // A screen reader reads the whole code at once, not six cells.
+  const group = boxes[0]!.closest<HTMLElement>("[role=img]")!;
+  expect(group.getAttribute("aria-label")).toBe("Code: 1 2 3 4 5 6");
+  expect(boxes[0]!.closest("[aria-hidden]")).toBeNull();
+});
+
+test("leaves the code out when none is given", () => {
+  expect(render(content, design, { light: false, dark: false }).querySelector("td.code-box")).toBeNull();
+});

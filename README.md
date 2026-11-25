@@ -105,6 +105,7 @@ const html = emailLayout(
     eyebrow: "Contact",
     heading: "Thank you, Ana.",
     paragraphs: ["Your message has reached us…"],
+    code: { label: "Code", value: "123456" }, // a one-time code: one box per character, outlined in the line color
     rows: [
       { label: "Email", value: "ana@example.com", href: "mailto:ana@example.com" },
       { label: "Needs", value: ["Website", "Hosting"] }, // a list: one item per line after a dot

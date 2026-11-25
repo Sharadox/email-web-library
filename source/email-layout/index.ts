@@ -1,5 +1,11 @@
 import { escapeHtml } from "@sharadox/web-library/html/escape";
-import type { EmailContent, EmailDesign, EmailLogos, EmailRow } from "@sharadox/email-web-library/email-layout/type";
+import type {
+  EmailContent,
+  EmailDesign,
+  EmailLogos,
+  EmailRow,
+  EmailCode,
+} from "@sharadox/email-web-library/email-layout/type";
 
 /**
  * The colors every email is drawn in, with no background (the mail app's own shows): `strong` for the logo, the
@@ -93,8 +99,24 @@ function details(rows: readonly EmailRow[]) {
 }
 
 /**
+ * A one-time code, one box per character outlined in the line color, so it reads at a glance and matches the boxes
+ * it's typed into. A screen reader hears the whole code once (the label, then each character).
+ */
+function codeBoxes(code: EmailCode) {
+  const characters = [...code.value];
+  const cells = characters
+    .map(
+      (character, index) =>
+        `${index ? `<td style="width:${small}px;padding:0"></td>` : ""}<td class="code-box line strong" align="center" style="width:40px;height:48px;padding:0;border:1px solid ${light.line};border-radius:${small}px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:24px;font-weight:700;line-height:48px;text-align:center;color:${light.strong}">${escapeHtml(character)}</td>`,
+    )
+    .join("");
+  const spoken = escapeHtml(`${code.label}: ${characters.join(" ")}`);
+  return `<div ${CAPITALS}>${escapeHtml(code.label)}</div><div role="img" aria-label="${spoken}" style="padding-top:${small}px">${table("", `<tr>${cells}</tr>`)}</div>`;
+}
+
+/**
  * An email that looks the same in every inbox, in a centered column 600 pixels wide: the logo, an eyebrow and a
- * heading, paragraphs, the details (each label over its value, lines between them), a sign-off with the company's
+ * heading, paragraphs, a one-time code in boxes, the details (each label over its value, lines between them), a sign-off with the company's
  * name, and its site. No background: the mail app's own shows; the text is black and gray, white and light gray in
  * dark themes where the mail app honors them (the only styles not inline). Spaces are 4, 8, 16 or 32 pixels. Geist
  * where the reader has it, the device's own sans otherwise. Everything given is escaped. `logos` says which logo
@@ -106,7 +128,7 @@ function details(rows: readonly EmailRow[]) {
  */
 export function emailLayout(content: EmailContent, design: EmailDesign, logos: EmailLogos | boolean): string {
   const carried = typeof logos === "boolean" ? { light: logos, dark: false } : logos;
-  const { language, preview, eyebrow, heading, paragraphs = [], rows = [], closing } = content;
+  const { language, preview, eyebrow, heading, paragraphs = [], rows = [], code, closing } = content;
   const block = (top: number, inside: string) => `<tr><td style="padding:${top}px 0 0">${inside}</td></tr>`;
   const parts = [
     `<tr><td style="padding:0">${header(design, carried)}</td></tr>`,
@@ -121,6 +143,7 @@ export function emailLayout(content: EmailContent, design: EmailDesign, logos: E
         `<p ${colored("soft", "margin:0;font-size:16px;line-height:24px")}>${escapeHtml(paragraph)}</p>`,
       ),
     ),
+    code ? block(large, codeBoxes(code)) : "",
     rows.length ? block(large - normal, details(rows)) : "",
     closing
       ? block(
