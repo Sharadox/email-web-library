@@ -2,6 +2,10 @@
 
 What changed in each version of `@sharadox/email-web-library`, newest first.
 
+## 0.8.0
+
+One-time codes in emails: `code` shows them one box per character, outlined in the line color.
+
 ## 0.7.1
 
 Workflows from git-hub-action-library v0.2.2: npm Trusted Publishing only

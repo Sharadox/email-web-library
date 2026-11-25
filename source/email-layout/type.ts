@@ -36,6 +36,14 @@ export interface EmailLogos {
   dark: boolean;
 }
 
+/** A one-time code, shown one box per character. */
+export interface EmailCode {
+  /** Its label, for example "Code". */
+  label: string;
+  /** The code itself, for example "123456". */
+  value: string;
+}
+
 /** What one email says. */
 export interface EmailContent {
   /** The language of the email, for the html's `lang`. */
@@ -47,6 +55,8 @@ export interface EmailContent {
   heading: string;
   /** Paragraphs under the heading. */
   paragraphs?: readonly string[];
+  /** A one-time code under the paragraphs, one box per character. */
+  code?: EmailCode;
   /** The details, each label over its value, lines between them. */
   rows?: readonly EmailRow[];
   /** The sign-off before the company's name: "Best regards,". */
