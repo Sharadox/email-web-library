@@ -41,8 +41,8 @@ const DARK_RULES = `@media (prefers-color-scheme:dark){${DARK}}${DARK.replace(/(
 const FONT = `font-family:${EMAIL_FONT}`;
 
 /** A table that's only there for layout, as email clients need. */
-const table = (style: string, rows: string, attributes = "") =>
-  `<table role="presentation" cellpadding="0" cellspacing="0" border="0"${attributes} style="border-collapse:collapse;${style}">${rows}</table>`;
+const table = (style: string, rows: string, attributes = "", collapse = "collapse") =>
+  `<table role="presentation" cellpadding="0" cellspacing="0" border="0"${attributes} style="border-collapse:${collapse};${style}">${rows}</table>`;
 
 /** Text in one of the two colors. */
 const colored = (role: "strong" | "soft", style: string) =>
@@ -99,7 +99,8 @@ function details(rows: readonly EmailRow[]) {
 }
 
 /**
- * A one-time code, one box per character outlined in the line color, so it reads at a glance and matches the boxes
+ * A one-time code, one square box per character (rounded: its table keeps its borders separate), outlined in the
+ * line color, so it reads at a glance and matches the boxes
  * it's typed into. A screen reader hears the whole code once (the label, then each character).
  */
 function codeBoxes(code: EmailCode) {
@@ -107,11 +108,11 @@ function codeBoxes(code: EmailCode) {
   const cells = characters
     .map(
       (character, index) =>
-        `${index ? `<td style="width:${small}px;padding:0"></td>` : ""}<td class="code-box line strong" align="center" style="width:40px;height:48px;padding:0;border:1px solid ${light.line};border-radius:${small}px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:24px;font-weight:700;line-height:48px;text-align:center;color:${light.strong}">${escapeHtml(character)}</td>`,
+        `${index ? `<td style="width:${small}px;padding:0"></td>` : ""}<td class="code-box line strong" align="center" style="width:48px;height:48px;padding:0;border:1px solid ${light.line};border-radius:${small}px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:24px;font-weight:700;line-height:48px;text-align:center;color:${light.strong}">${escapeHtml(character)}</td>`,
     )
     .join("");
   const spoken = escapeHtml(`${code.label}: ${characters.join(" ")}`);
-  return `<div ${CAPITALS}>${escapeHtml(code.label)}</div><div role="img" aria-label="${spoken}" style="padding-top:${small}px">${table("", `<tr>${cells}</tr>`)}</div>`;
+  return `<div ${CAPITALS}>${escapeHtml(code.label)}</div><div role="img" aria-label="${spoken}" style="padding-top:${small}px">${table("border-spacing:0", `<tr>${cells}</tr>`, "", "separate")}</div>`;
 }
 
 /**

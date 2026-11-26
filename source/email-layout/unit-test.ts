@@ -166,6 +166,9 @@ test("shows a one-time code as one box per character, each outlined in the line 
     expect(box.style.border.toUpperCase()).toContain(light.line);
     expect(color(box)).toBe(light.strong);
     expect(box.style.fontFamily).toContain("monospace");
+    // Square, with rounded corners that show: a collapsed table would square them off.
+    expect([box.style.width, box.style.height, box.style.borderRadius]).toEqual(["48px", "48px", "8px"]);
+    expect(box.closest("table")!.style.borderCollapse).toBe("separate");
   }
   const label = byText(document, "Code");
   expect(label.compareDocumentPosition(boxes[0]!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
