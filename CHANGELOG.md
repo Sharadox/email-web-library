@@ -2,6 +2,10 @@
 
 What changed in each version of `@sharadox/email-web-library`, newest first.
 
+## 0.8.1
+
+Code boxes are square (48 by 48) and their 8-pixel corners show: their table keeps its borders separate.
+
 ## 0.8.0
 
 One-time codes in emails: `code` shows them one box per character, outlined in the line color.
